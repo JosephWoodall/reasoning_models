@@ -6,6 +6,15 @@ services:
       dockerfile: src/training_pipeline/Dockerfile
     container_name: reasoning-models-training
     
+    # GPU support using deploy syntax (working with system Docker daemon)
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    
     volumes:
       # Mount the entire project directory
       - .:/workspace
@@ -20,6 +29,8 @@ services:
     command: python src/training_pipeline/train_model.py
     
     environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
       - PYTHONPATH=/workspace/src
       - CUDA_VISIBLE_DEVICES=0
     

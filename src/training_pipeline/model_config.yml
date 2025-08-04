@@ -143,7 +143,7 @@ generation:
 # Hardware Configuration
 hardware:
   # Device to use: 'auto', 'cuda', 'cpu'
-  device: "auto"  # Let Docker container auto-detect GPU
+  device: "cpu"  # Force CPU until PyTorch supports RTX 5070
   
   # Number of worker processes for data loading
   num_workers: 2

@@ -1,5 +1,5 @@
-# Use official PyTorch image with CUDA support (latest stable)
-FROM pytorch/pytorch:2.2.0-cuda12.1-cudnn8-devel
+# Use official PyTorch image with CUDA support (newer version for RTX 5070 support)
+FROM pytorch/pytorch:2.4.1-cuda12.1-cudnn9-devel
 
 # Set working directory
 WORKDIR /workspace
