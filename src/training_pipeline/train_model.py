@@ -29,6 +29,8 @@ import re
 src_dir = os.path.join(os.path.dirname(__file__), '..')
 sys.path.insert(0, src_dir)
 
+# Now we can import the model
+
 
 def set_seed(seed: int = 42):
     """Set random seeds for reproducibility."""

@@ -533,3 +533,106 @@
 2025-08-04 11:35:16,274 - INFO - Model parameters: 49,659,418 total, 49,659,418 trainable
 2025-08-04 11:35:19,194 - INFO - Batch 0/20, Loss: 8.2700, LR: 0.000000
 2025-08-04 11:35:39,524 - INFO - Batch 10/20, Loss: 7.6735, LR: 0.000002
+2025-08-04 11:43:24,873 - INFO - Starting transformer training...
+2025-08-04 11:43:24,874 - INFO - Configuration: {
+  "model": {
+    "d_model": 128,
+    "num_heads": 4,
+    "num_layers": 2,
+    "d_ff": 512,
+    "max_len": 256,
+    "dropout": 0.1,
+    "src_vocab_size": 10000,
+    "tgt_vocab_size": 10000
+  },
+  "training": {
+    "batch_size": 4,
+    "epochs": 3,
+    "learning_rate": 0.001,
+    "scheduler": {
+      "type": "warmup",
+      "warmup_steps": 4000,
+      "step_factor": 0.5,
+      "step_size": 10
+    },
+    "grad_clip": 1.0,
+    "weight_decay": 0.01,
+    "save_frequency": 1,
+    "log_frequency": 10
+  },
+  "data": {
+    "cache_dir": "text_cache",
+    "sequence_length": 512,
+    "min_text_length": 1000,
+    "train_split": 0.9,
+    "max_files": null,
+    "special_tokens": {
+      "pad_token": "<PAD>",
+      "unk_token": "<UNK>",
+      "start_token": "<START>",
+      "end_token": "<END>"
+    }
+  },
+  "output": {
+    "checkpoint_dir": "output/checkpoints",
+    "log_dir": "output/logs",
+    "samples_dir": "output/samples",
+    "model_name": "transformer_lm"
+  },
+  "generation": {
+    "max_length": 200,
+    "temperature": 0.8,
+    "top_k": 50,
+    "top_p": 0.9,
+    "num_samples": 5
+  },
+  "hardware": {
+    "device": "cpu",
+    "num_workers": 2,
+    "pin_memory": false
+  },
+  "evaluation": {
+    "eval_frequency": 1,
+    "metrics": [
+      "perplexity",
+      "loss"
+    ],
+    "eval_samples": 1000
+  }
+}
+2025-08-04 11:43:24,874 - INFO - Using device: cpu
+2025-08-04 11:43:24,874 - INFO - Train texts: 1, Validation texts: 1
+2025-08-04 11:43:24,912 - INFO - Model parameters: 2,313,242 total, 2,313,242 trainable
+2025-08-04 11:43:25,975 - INFO - Batch 0/20, Loss: 8.3716, LR: 0.000000
+2025-08-04 11:43:28,690 - INFO - Batch 10/20, Loss: 8.1969, LR: 0.000004
+2025-08-04 11:43:32,251 - INFO - Epoch 0/3:
+2025-08-04 11:43:32,251 - INFO -   Train Loss: 8.2056
+2025-08-04 11:43:32,251 - INFO -   Val Loss: 8.1744
+2025-08-04 11:43:32,251 - INFO -   Perplexity: 3548.88
+2025-08-04 11:43:32,451 - INFO - Saved checkpoint at epoch 0
+2025-08-04 11:43:32,802 - INFO - Sample: the array eye develops gleaning non twirled employee published jaunty northern cat depends j kill blame performances themselves — trucks sizes position 13 kinsfolk have per received appleton universit...
+2025-08-04 11:43:32,967 - INFO - Saved checkpoint at epoch 0
+2025-08-04 11:43:32,967 - INFO - Epoch 0 completed in 7.36s
+2025-08-04 11:43:33,329 - INFO - Batch 0/20, Loss: 8.2154, LR: 0.000007
+2025-08-04 11:43:36,052 - INFO - Batch 10/20, Loss: 8.1550, LR: 0.000011
+2025-08-04 11:43:39,476 - INFO - Epoch 1/3:
+2025-08-04 11:43:39,476 - INFO -   Train Loss: 8.1643
+2025-08-04 11:43:39,477 - INFO -   Val Loss: 8.1343
+2025-08-04 11:43:39,477 - INFO -   Perplexity: 3409.57
+2025-08-04 11:43:39,592 - INFO - Saved checkpoint at epoch 1
+2025-08-04 11:43:39,904 - INFO - Sample: the largely lots contain alternately opens priced species gratifying builds harvey bread ruskin tough desired alleghanies retired screaming bit scale screech carry shade versa 18 relieve steam oversha...
+2025-08-04 11:43:40,093 - INFO - Saved checkpoint at epoch 1
+2025-08-04 11:43:40,093 - INFO - Epoch 1 completed in 7.13s
+2025-08-04 11:43:40,551 - INFO - Batch 0/20, Loss: 8.1286, LR: 0.000014
+2025-08-04 11:43:43,234 - INFO - Batch 10/20, Loss: 8.2006, LR: 0.000018
+2025-08-04 11:43:46,621 - INFO - Epoch 2/3:
+2025-08-04 11:43:46,621 - INFO -   Train Loss: 8.1105
+2025-08-04 11:43:46,621 - INFO -   Val Loss: 8.0650
+2025-08-04 11:43:46,621 - INFO -   Perplexity: 3181.10
+2025-08-04 11:43:46,855 - INFO - Saved checkpoint at epoch 2
+2025-08-04 11:43:47,323 - INFO - Sample: the plumage rapacious writing aware magnificent remarkable expenses juvenile raised fanning fast chi group get gilded 65c hearth _saddle dried corkaline superintendent architecture plumbing bright mea...
+2025-08-04 11:43:47,462 - INFO - Saved checkpoint at epoch 2
+2025-08-04 11:43:47,462 - INFO - Epoch 2 completed in 7.37s
+2025-08-04 11:43:47,462 - INFO - Training completed in 21.85s
+2025-08-04 11:43:47,646 - INFO - Saved checkpoint at epoch 3
+2025-08-04 11:43:47,646 - INFO - Training finished!
