@@ -636,3 +636,176 @@
 2025-08-04 11:43:47,462 - INFO - Training completed in 21.85s
 2025-08-04 11:43:47,646 - INFO - Saved checkpoint at epoch 3
 2025-08-04 11:43:47,646 - INFO - Training finished!
+2025-08-04 11:50:53,591 - INFO - Starting transformer training...
+2025-08-04 11:50:53,591 - INFO - Configuration: {
+  "model": {
+    "d_model": 128,
+    "num_heads": 4,
+    "num_layers": 2,
+    "d_ff": 512,
+    "max_len": 256,
+    "dropout": 0.1,
+    "src_vocab_size": 10000,
+    "tgt_vocab_size": 10000
+  },
+  "training": {
+    "batch_size": 4,
+    "epochs": 3,
+    "learning_rate": 0.001,
+    "scheduler": {
+      "type": "warmup",
+      "warmup_steps": 4000,
+      "step_factor": 0.5,
+      "step_size": 10
+    },
+    "grad_clip": 1.0,
+    "weight_decay": 0.01,
+    "save_frequency": 1,
+    "log_frequency": 10
+  },
+  "data": {
+    "cache_dir": "text_cache",
+    "sequence_length": 512,
+    "min_text_length": 1000,
+    "train_split": 0.9,
+    "max_files": null,
+    "special_tokens": {
+      "pad_token": "<PAD>",
+      "unk_token": "<UNK>",
+      "start_token": "<START>",
+      "end_token": "<END>"
+    }
+  },
+  "output": {
+    "checkpoint_dir": "output/checkpoints",
+    "log_dir": "output/logs",
+    "samples_dir": "output/samples",
+    "model_name": "transformer_lm"
+  },
+  "generation": {
+    "max_length": 200,
+    "temperature": 0.8,
+    "top_k": 50,
+    "top_p": 0.9,
+    "num_samples": 5
+  },
+  "hardware": {
+    "device": "auto",
+    "num_workers": 2,
+    "pin_memory": false
+  },
+  "evaluation": {
+    "eval_frequency": 1,
+    "metrics": [
+      "perplexity",
+      "loss"
+    ],
+    "eval_samples": 1000
+  }
+}
+2025-08-04 11:50:53,648 - INFO - Using device: cuda
+2025-08-04 11:50:53,648 - INFO - Train texts: 1, Validation texts: 1
+2025-08-04 11:50:53,805 - INFO - Model parameters: 2,313,242 total, 2,313,242 trainable
+2025-08-04 16:12:50,076 - INFO - Starting transformer training...
+2025-08-04 16:12:50,080 - INFO - Configuration: {
+  "model": {
+    "d_model": 128,
+    "num_heads": 4,
+    "num_layers": 2,
+    "d_ff": 512,
+    "max_len": 256,
+    "dropout": 0.1,
+    "src_vocab_size": 10000,
+    "tgt_vocab_size": 10000
+  },
+  "training": {
+    "batch_size": 4,
+    "epochs": 3,
+    "learning_rate": 0.001,
+    "scheduler": {
+      "type": "warmup",
+      "warmup_steps": 4000,
+      "step_factor": 0.5,
+      "step_size": 10
+    },
+    "grad_clip": 1.0,
+    "weight_decay": 0.01,
+    "save_frequency": 1,
+    "log_frequency": 10
+  },
+  "data": {
+    "cache_dir": "text_cache",
+    "sequence_length": 512,
+    "min_text_length": 1000,
+    "train_split": 0.9,
+    "max_files": null,
+    "special_tokens": {
+      "pad_token": "<PAD>",
+      "unk_token": "<UNK>",
+      "start_token": "<START>",
+      "end_token": "<END>"
+    }
+  },
+  "output": {
+    "checkpoint_dir": "output/checkpoints",
+    "log_dir": "output/logs",
+    "samples_dir": "output/samples",
+    "model_name": "transformer_lm"
+  },
+  "generation": {
+    "max_length": 200,
+    "temperature": 0.8,
+    "top_k": 50,
+    "top_p": 0.9,
+    "num_samples": 5
+  },
+  "hardware": {
+    "device": "auto",
+    "num_workers": 2,
+    "pin_memory": true
+  },
+  "evaluation": {
+    "eval_frequency": 1,
+    "metrics": [
+      "perplexity",
+      "loss"
+    ],
+    "eval_samples": 1000
+  }
+}
+2025-08-04 16:12:50,081 - INFO - Using device: cpu
+2025-08-04 16:12:50,082 - INFO - Train texts: 1, Validation texts: 1
+2025-08-04 16:12:50,125 - INFO - Model parameters: 2,313,242 total, 2,313,242 trainable
+2025-08-04 16:12:50,948 - INFO - Batch 0/20, Loss: 8.3527, LR: 0.000000
+2025-08-04 16:12:54,369 - INFO - Batch 10/20, Loss: 8.1987, LR: 0.000004
+2025-08-04 16:12:59,169 - INFO - Epoch 0/3:
+2025-08-04 16:12:59,169 - INFO -   Train Loss: 8.2039
+2025-08-04 16:12:59,169 - INFO -   Val Loss: 8.1745
+2025-08-04 16:12:59,170 - INFO -   Perplexity: 3549.35
+2025-08-04 16:12:59,400 - INFO - Saved checkpoint at epoch 0
+2025-08-04 16:13:00,338 - INFO - Sample: the facing effect confirmation affecting french latter restrictions boy removed past handsome noise compel strain skull build 750 steam our promoting series bitter minstrel but warblers twigs seriousl...
+2025-08-04 16:13:01,496 - INFO - Saved checkpoint at epoch 0
+2025-08-04 16:13:01,497 - INFO - Epoch 0 completed in 10.92s
+2025-08-04 16:13:02,232 - INFO - Batch 0/20, Loss: 8.2040, LR: 0.000007
+2025-08-04 16:13:05,733 - INFO - Batch 10/20, Loss: 8.1889, LR: 0.000011
+2025-08-04 16:13:10,352 - INFO - Epoch 1/3:
+2025-08-04 16:13:10,352 - INFO -   Train Loss: 8.1619
+2025-08-04 16:13:10,352 - INFO -   Val Loss: 8.1343
+2025-08-04 16:13:10,353 - INFO -   Perplexity: 3409.56
+2025-08-04 16:13:10,561 - INFO - Saved checkpoint at epoch 1
+2025-08-04 16:13:11,654 - INFO - Sample: the bud 43 ambitious curiously outdated link similar living finer benefactor _mail bookkeeping bluebirds kindly world circles sad guns _for errors soundings sections value comparatively minstrel 20 wo...
+2025-08-04 16:13:11,897 - INFO - Saved checkpoint at epoch 1
+2025-08-04 16:13:11,897 - INFO - Epoch 1 completed in 10.40s
+2025-08-04 16:13:12,602 - INFO - Batch 0/20, Loss: 8.1377, LR: 0.000014
+2025-08-04 16:13:15,843 - INFO - Batch 10/20, Loss: 8.0702, LR: 0.000018
+2025-08-04 16:13:20,570 - INFO - Epoch 2/3:
+2025-08-04 16:13:20,570 - INFO -   Train Loss: 8.1134
+2025-08-04 16:13:20,570 - INFO -   Val Loss: 8.0651
+2025-08-04 16:13:20,571 - INFO -   Perplexity: 3181.48
+2025-08-04 16:13:20,759 - INFO - Saved checkpoint at epoch 2
+2025-08-04 16:13:21,644 - INFO - Sample: the unmounted gleaning council truth motionless scrapers works scarcity per taught trouble direction saucily groan seek subsists instruction noiseless needles nest vigorously professor ask males twigs...
+2025-08-04 16:13:24,786 - INFO - Saved checkpoint at epoch 2
+2025-08-04 16:13:24,787 - INFO - Epoch 2 completed in 12.89s
+2025-08-04 16:13:24,788 - INFO - Training completed in 34.22s
+2025-08-04 16:13:27,091 - INFO - Saved checkpoint at epoch 3
+2025-08-04 16:13:27,092 - INFO - Training finished!

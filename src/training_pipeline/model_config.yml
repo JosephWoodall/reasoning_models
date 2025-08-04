@@ -143,13 +143,13 @@ generation:
 # Hardware Configuration
 hardware:
   # Device to use: 'auto', 'cuda', 'cpu'
-  device: "cpu"
+  device: "auto"  # Let Docker container auto-detect GPU
   
   # Number of worker processes for data loading
   num_workers: 2
   
   # Pin memory for faster GPU transfer
-  pin_memory: false
+  pin_memory: true
 
 # Evaluation Parameters
 evaluation:

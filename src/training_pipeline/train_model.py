@@ -6,7 +6,6 @@ This script trains a transformer model on text data from the text_cache director
 It loads configuration from model_config.yml and implements a complete training pipeline.
 """
 
-from model.model import Transformer
 import os
 import sys
 import json
@@ -30,7 +29,7 @@ src_dir = os.path.join(os.path.dirname(__file__), '..')
 sys.path.insert(0, src_dir)
 
 # Now we can import the model
-
+from model.model import Transformer
 
 def set_seed(seed: int = 42):
     """Set random seeds for reproducibility."""
