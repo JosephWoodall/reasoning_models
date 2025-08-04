@@ -1,6 +1,32 @@
 # Model Configuration for Transformer Training
 # This file contains all the hyperparameters and settings for training the transformer model
 
+# ===========
+# Practical Recommendations
+# ===========
+# Faster Experimentation
+# d_model: 256      # Smaller
+# num_heads: 8      # Keep
+# num_layers: 4     # Fewer layers  
+# d_ff: 1024        # Smaller
+# max_len: 512      # Shorter sequences
+
+# Production and Better Performance 
+# d_model: 768      # Larger
+# num_heads: 12     # More heads
+# num_layers: 12    # Deeper
+# d_ff: 3072        # 4× d_model
+# max_len: 2048     # Longer sequences
+
+# Constrained Resources
+# d_model: 128      # Very small
+# num_heads: 4      # Fewer heads
+# num_layers: 2     # Very shallow
+# d_ff: 512         # Small
+# max_len: 256      # Short sequences
+# ===========
+
+
 # Model Architecture Parameters
 model:
   # Model dimension (d_model) - size of embeddings and hidden states
