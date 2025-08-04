@@ -1,0 +1,139 @@
+# Model Configuration for Transformer Training
+# This file contains all the hyperparameters and settings for training the transformer model
+
+# Model Architecture Parameters
+model:
+  # Model dimension (d_model) - size of embeddings and hidden states
+  d_model: 512
+  
+  # Number of attention heads in multi-head attention
+  num_heads: 8
+  
+  # Number of encoder and decoder layers
+  num_layers: 6
+  
+  # Feed-forward network hidden dimension (typically 4x d_model)
+  d_ff: 2048
+  
+  # Maximum sequence length the model can handle
+  max_len: 1024
+  
+  # Dropout rate for regularization
+  dropout: 0.1
+  
+  # Vocabulary size (will be determined from data)
+  src_vocab_size: 10000
+  tgt_vocab_size: 10000
+
+# Training Parameters
+training:
+  # Batch size for training
+  batch_size: 4
+  
+  # Number of training epochs
+  epochs: 3
+  
+  # Learning rate
+  learning_rate: 0.001
+  
+  # Learning rate scheduler parameters
+  scheduler:
+    # Type of scheduler: 'cosine', 'step', 'exponential', or 'warmup'
+    type: "warmup"
+    # Warmup steps for warmup scheduler
+    warmup_steps: 4000
+    # Factor for step scheduler
+    step_factor: 0.5
+    # Step size for step scheduler
+    step_size: 10
+  
+  # Gradient clipping value
+  grad_clip: 1.0
+  
+  # Weight decay for AdamW optimizer
+  weight_decay: 0.01
+  
+  # How often to save model checkpoints (in epochs)
+  save_frequency: 1
+  
+  # How often to print training statistics (in batches)
+  log_frequency: 10
+
+# Data Parameters
+data:
+  # Directory containing cached text files
+  cache_dir: "text_cache"
+  
+  # Sequence length for training examples
+  sequence_length: 512
+  
+  # Minimum text length to include in dataset
+  min_text_length: 1000
+  
+  # Train/validation split ratio
+  train_split: 0.9
+  
+  # Maximum number of text files to use (None for all)
+  max_files: null
+  
+  # Special tokens
+  special_tokens:
+    pad_token: "<PAD>"
+    unk_token: "<UNK>"
+    start_token: "<START>"
+    end_token: "<END>"
+
+# Training Output Configuration
+output:
+  # Directory to save model checkpoints
+  checkpoint_dir: "output/checkpoints"
+  
+  # Directory to save logs
+  log_dir: "output/logs"
+  
+  # Directory to save generated samples
+  samples_dir: "output/samples"
+  
+  # Model name for saving
+  model_name: "transformer_lm"
+
+# Generation Parameters (for inference/sampling)
+generation:
+  # Maximum length for generated sequences
+  max_length: 200
+  
+  # Temperature for sampling (higher = more random)
+  temperature: 0.8
+  
+  # Top-k sampling parameter
+  top_k: 50
+  
+  # Top-p (nucleus) sampling parameter
+  top_p: 0.9
+  
+  # Number of samples to generate
+  num_samples: 5
+
+# Hardware Configuration
+hardware:
+  # Device to use: 'auto', 'cuda', 'cpu'
+  device: "cpu"
+  
+  # Number of worker processes for data loading
+  num_workers: 2
+  
+  # Pin memory for faster GPU transfer
+  pin_memory: false
+
+# Evaluation Parameters
+evaluation:
+  # How often to run evaluation (in epochs)
+  eval_frequency: 1
+  
+  # Metrics to compute
+  metrics:
+    - "perplexity"
+    - "loss"
+  
+  # Number of samples for evaluation
+  eval_samples: 1000
