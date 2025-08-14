@@ -30,22 +30,22 @@
 # Model Architecture Parameters
 model:
   # Model dimension (d_model) - size of embeddings and hidden states
-  d_model: 256
+  d_model: 384
   
   # Number of attention heads in multi-head attention
-  num_heads: 8
+  num_heads: 6
 
   # Number of encoder and decoder layers
-  num_layers: 4
+  num_layers: 6
 
   # Feed-forward network hidden dimension (typically 4x d_model)
-  d_ff: 1024
+  d_ff: 1536
 
   # Maximum sequence length the model can handle
-  max_len: 512
-  
+  max_len: 2048
+
   # Dropout rate for regularization
-  dropout: 0.1
+  dropout: 0.2
   
   # Vocabulary size (will be determined from data)
   src_vocab_size: 10000
@@ -54,10 +54,10 @@ model:
 # Training Parameters
 training:
   # Batch size for training
-  batch_size: 4
+  batch_size: 10
   
   # Number of training epochs
-  epochs: 3
+  epochs: 20
   
   # Learning rate
   learning_rate: 0.001
@@ -88,16 +88,16 @@ training:
 # Data Parameters
 data:
   # Directory containing cached text files
-  cache_dir: "text_cache"
+  cache_dir: "src/data/text_cache"
   
   # Sequence length for training examples
   sequence_length: 512
   
   # Minimum text length to include in dataset
-  min_text_length: 1000
+  min_text_length: 500
   
   # Train/validation split ratio
-  train_split: 0.9
+  train_split: 0.95
   
   # Maximum number of text files to use (None for all)
   max_files: null
@@ -154,7 +154,7 @@ hardware:
 # Evaluation Parameters
 evaluation:
   # How often to run evaluation (in epochs)
-  eval_frequency: 1
+  eval_frequency: 2
   
   # Metrics to compute
   metrics:
@@ -162,4 +162,4 @@ evaluation:
     - "loss"
   
   # Number of samples for evaluation
-  eval_samples: 1000
+  eval_samples: 2000

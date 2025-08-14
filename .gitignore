@@ -1,0 +1,11 @@
+# Model checkpoints
+output/checkpoints/
+*.pt
+*.pth
+*.ckpt
+*.bin
+*.model
+*.h5
+
+# Text Cache Used for Training
+src/data/text_cache

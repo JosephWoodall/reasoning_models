@@ -11,6 +11,8 @@ import os
 from typing import List, Optional, Dict, Any
 from urllib.parse import urlparse
 import json
+import yaml
+import time
 
 
 class TextDatasetGenerator:
@@ -266,31 +268,90 @@ class TextDatasetGenerator:
         return datetime.now().isoformat()
 
 
-# Example usage
+def load_config(config_path: str) -> Dict[str, Any]:
+    with open(config_path, "r") as f:
+        return yaml.safe_load(f)
+
+def main():
+    # Load config
+    config = load_config("/home/joseph_woodall/workspace/reasoning_models/src/data/text_dataset_generator.yml")
+
+    # Pull relevant config settings
+    url_pattern = config["url_pattern"]
+    start_id = config["book_ids"]["start"]
+    end_id = config["book_ids"]["end"]
+    cache_dir = config["cache"]["directory"]
+    file_ext = config["cache"].get("file_extension", ".txt")
+    force_refresh = config["download"].get("force_refresh", False)
+    max_retries = config["download"].get("max_retries", 3)
+    timeout = config["download"].get("timeout", 30)
+    delay = config["download"].get("delay_between_requests", 1)
+
+    # Processing options (not all are used in this snippet, but you can expand)
+    min_length = config["processing"].get("min_length", 1000)
+
+    # Initialize generator
+    generator = TextDatasetGenerator(cache_dir=cache_dir)
+
+    all_chunks = []
+    metadata = []
+    errors = []
+
+    for book_id in range(start_id, end_id + 1):
+        url = url_pattern.format(id=book_id)
+        print(f"Processing book ID {book_id} from {url}")
+
+        retries = 0
+        while retries < max_retries:
+            try:
+                raw_text = generator.fetch_text(url, force_refresh=force_refresh)
+                if config["processing"].get("remove_gutenberg_header", True) or config["processing"].get("remove_gutenberg_footer", True):
+                    text = generator.clean_gutenberg_text(raw_text)
+                else:
+                    text = raw_text
+                # Apply additional processing if needed...
+
+                if len(text) < min_length:
+                    print(f"Book ID {book_id} skipped: text too short ({len(text)})")
+                    break
+
+                chunks = generator.split_into_chunks(
+                    text,
+                    chunk_size=min_length,
+                    overlap=100  # adjust as needed
+                )
+                all_chunks.extend(chunks)
+                metadata.append({
+                    "book_id": book_id,
+                    "source_url": url,
+                    "num_chunks": len(chunks),
+                    "total_characters": len(text)
+                })
+                print(f"Book ID {book_id}: {len(chunks)} chunks")
+                break  # Success, break out of retries loop
+
+            except Exception as e:
+                print(f"Book ID {book_id} failed: {e}")
+                retries += 1
+                time.sleep(delay)
+                if retries == max_retries:
+                    errors.append({"book_id": book_id, "url": url, "error": str(e)})
+
+    # Aggregate dataset
+    dataset = {
+        "metadata": metadata,
+        "chunks": all_chunks,
+        "errors": errors,
+        "config_used": config,
+        "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    }
+
+    # Save dataset
+    with open("gutenberg_dataset.json", "w", encoding="utf-8") as f:
+        json.dump(dataset, f, indent=2, ensure_ascii=False)
+
+    print(f"\nAggregated dataset saved to gutenberg_dataset.json")
+    print(f"Total chunks: {len(all_chunks)} | Books processed: {len(metadata)} | Errors: {len(errors)}")
+
 if __name__ == "__main__":
-    # Create dataset generator
-    generator = TextDatasetGenerator(cache_dir="text_cache")
-
-    # URL for the Gutenberg text you specified
-    gutenberg_url = "https://www.gutenberg.org/cache/epub/25983/pg25983.txt"
-
-    # Create dataset
-    print("Creating dataset from Project Gutenberg text...")
-    dataset = generator.create_dataset(
-        url=gutenberg_url,
-        output_file="gutenberg_dataset.json",
-        chunk_size=1000,
-        overlap=100
-    )
-
-    # Print statistics
-    stats = generator.get_dataset_stats(dataset)
-    print("\nDataset Statistics:")
-    for key, value in stats.items():
-        print(f"  {key}: {value}")
-
-    print(f"\nDataset saved to: gutenberg_dataset.json")
-    print(f"First chunk preview:")
-    print(f"{'='*50}")
-    print(dataset['chunks'][0][:300] + "..." if len(dataset['chunks']
-          [0]) > 300 else dataset['chunks'][0])
+    main()

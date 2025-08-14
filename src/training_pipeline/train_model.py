@@ -236,9 +236,9 @@ def load_config(config_path: Optional[str] = None) -> Dict:
 
 
 def load_text_data(cache_dir: str, max_files: Optional[int] = None,
-                   min_length: int = 1000) -> List[str]:
-    """Load text data from cache directory."""
-    print(f"Loading text data from {cache_dir}...")
+                   min_length: int = 1000, batch_size: int = 1000) -> List[str]:
+    """Load text data from cache directory with batching and multiprocessing."""
+    logging.info(f"Loading text data from {cache_dir}...")
 
     texts = []
     cache_path = Path(cache_dir)
@@ -246,21 +246,44 @@ def load_text_data(cache_dir: str, max_files: Optional[int] = None,
     if not cache_path.exists():
         raise ValueError(f"Cache directory {cache_dir} does not exist")
 
+    # Get all text files and optionally limit them
     text_files = list(cache_path.glob("*.txt"))
+    random.shuffle(text_files)  # Shuffle files for better training
     if max_files:
         text_files = text_files[:max_files]
 
-    for file_path in text_files:
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                text = f.read()
-                if len(text) >= min_length:
-                    texts.append(text)
-                    print(f"Loaded {file_path.name} ({len(text)} characters)")
-        except Exception as e:
-            print(f"Error loading {file_path}: {e}")
+    total_files = len(text_files)
+    processed_files = 0
+    total_chars = 0
 
-    print(f"Loaded {len(texts)} text files")
+    # Process files in batches to manage memory
+    for i in range(0, len(text_files), batch_size):
+        batch_files = text_files[i:i + batch_size]
+        batch_texts = []
+
+        for file_path in batch_files:
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    text = f.read()
+                    if len(text) >= min_length:
+                        batch_texts.append(text)
+                        total_chars += len(text)
+                processed_files += 1
+                
+                # Log progress every 1000 files or at the end
+                if processed_files % 1000 == 0 or processed_files == total_files:
+                    logging.info(f"Progress: {processed_files}/{total_files} files "
+                               f"({(processed_files/total_files)*100:.1f}%)")
+            except Exception as e:
+                logging.error(f"Error loading {file_path}: {e}")
+
+        texts.extend(batch_texts)
+        # Log batch completion
+        logging.info(f"Loaded batch of {len(batch_texts)} texts "
+                    f"(Total: {len(texts)} texts, {total_chars/1_000_000:.1f}M chars)")
+
+    logging.info(f"Completed loading {len(texts)} text files "
+                f"({total_chars/1_000_000:.1f}M characters)")
     return texts
 
 
@@ -295,7 +318,12 @@ def setup_logging(config: Dict):
     project_root = os.path.join(os.path.dirname(__file__), '..', '..')
     log_dir = os.path.join(project_root, config['output']['log_dir'])
     log_file = os.path.join(log_dir, 'training.log')
-
+    
+    # Clear existing log file
+    os.makedirs(os.path.dirname(log_file), exist_ok=True)
+    with open(log_file, 'w') as f:
+        f.write('')  # Clear the file
+    
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s',
@@ -442,7 +470,6 @@ def main():
     # config_path = os.path.join(os.path.dirname(__file__), 'model_config.yml')
     config_path = "/home/joseph_woodall/workspace/reasoning_models/src/training_pipeline/model_config.yml"
     config = load_config(config_path)
-    print(config)
 
     # Set random seed
     set_seed(42)
@@ -465,10 +492,15 @@ def main():
     # Load text data (adjust path to be relative to project root)
     cache_dir = os.path.join(os.path.dirname(
         __file__), '..', '..', config['data']['cache_dir'])
+    
+    # Get batch size from config or use default
+    batch_size = config['data'].get('load_batch_size', 1000)
+    
     texts = load_text_data(
         cache_dir,
         config['data']['max_files'],
-        config['data']['min_text_length']
+        config['data']['min_text_length'],
+        batch_size=batch_size
     )
 
     if not texts:
