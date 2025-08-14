@@ -30,19 +30,19 @@
 # Model Architecture Parameters
 model:
   # Model dimension (d_model) - size of embeddings and hidden states
-  d_model: 128
+  d_model: 256
   
   # Number of attention heads in multi-head attention
-  num_heads: 4
+  num_heads: 8
 
   # Number of encoder and decoder layers
-  num_layers: 2
+  num_layers: 4
 
   # Feed-forward network hidden dimension (typically 4x d_model)
-  d_ff: 512
-  
+  d_ff: 1024
+
   # Maximum sequence length the model can handle
-  max_len: 256
+  max_len: 512
   
   # Dropout rate for regularization
   dropout: 0.1
@@ -143,7 +143,7 @@ generation:
 # Hardware Configuration
 hardware:
   # Device to use: 'auto', 'cuda', 'cpu'
-  device: "auto"  # Force CPU until PyTorch supports RTX 5070
+  device: "auto" 
   
   # Number of worker processes for data loading
   num_workers: 2

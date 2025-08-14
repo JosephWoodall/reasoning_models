@@ -439,8 +439,10 @@ def evaluate(model: nn.Module, dataloader: DataLoader, criterion,
 def main():
     """Main training function."""
     # Load configuration from the same directory as this script
-    config_path = os.path.join(os.path.dirname(__file__), 'model_config.yml')
+    # config_path = os.path.join(os.path.dirname(__file__), 'model_config.yml')
+    config_path = "/home/joseph_woodall/workspace/reasoning_models/src/training_pipeline/model_config.yml"
     config = load_config(config_path)
+    print(config)
 
     # Set random seed
     set_seed(42)
