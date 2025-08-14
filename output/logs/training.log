@@ -1432,3 +1432,384 @@
 2025-08-11 14:46:28,803 - INFO - Training completed in 56.19s
 2025-08-11 14:46:29,060 - INFO - Saved checkpoint at epoch 3
 2025-08-11 14:46:29,061 - INFO - Training finished!
+2025-08-14 12:13:38,777 - INFO - Starting transformer training...
+2025-08-14 12:13:38,778 - INFO - Configuration: {
+  "model": {
+    "d_model": 128,
+    "num_heads": 4,
+    "num_layers": 2,
+    "d_ff": 512,
+    "max_len": 1024,
+    "dropout": 0.1,
+    "src_vocab_size": 5000,
+    "tgt_vocab_size": 5000
+  },
+  "training": {
+    "batch_size": 4,
+    "epochs": 5,
+    "learning_rate": 0.001,
+    "scheduler": {
+      "type": "warmup",
+      "warmup_steps": 100,
+      "step_factor": 0.5,
+      "step_size": 10
+    },
+    "grad_clip": 1.0,
+    "weight_decay": 0.01,
+    "save_frequency": 2,
+    "log_frequency": 10
+  },
+  "data": {
+    "cache_dir": "text_cache",
+    "sequence_length": 128,
+    "min_text_length": 1000,
+    "train_split": 0.9,
+    "max_files": null,
+    "special_tokens": {
+      "pad_token": "<PAD>",
+      "unk_token": "<UNK>",
+      "start_token": "<START>",
+      "end_token": "<END>"
+    }
+  },
+  "output": {
+    "checkpoint_dir": "output/checkpoints",
+    "log_dir": "output/logs",
+    "samples_dir": "output/samples",
+    "model_name": "transformer_lm"
+  },
+  "generation": {
+    "max_length": 200,
+    "temperature": 0.8,
+    "top_k": 50,
+    "top_p": 0.9,
+    "num_samples": 5
+  },
+  "hardware": {
+    "device": "cpu",
+    "num_workers": 2,
+    "pin_memory": false
+  },
+  "evaluation": {
+    "eval_frequency": 5,
+    "metrics": [
+      "perplexity",
+      "loss"
+    ],
+    "eval_samples": 1000
+  }
+}
+2025-08-14 12:13:38,778 - INFO - Using device: cpu
+2025-08-14 12:13:38,778 - INFO - Train texts: 1, Validation texts: 1
+2025-08-14 12:13:38,814 - INFO - Model parameters: 2,313,242 total, 2,313,242 trainable
+2025-08-14 12:13:39,519 - INFO - Batch 0/80, Loss: 8.3858, LR: 0.000088
+2025-08-14 12:13:39,940 - INFO - Batch 10/80, Loss: 7.4111, LR: 0.000972
+2025-08-14 12:13:40,336 - INFO - Batch 20/80, Loss: 6.5957, LR: 0.001856
+2025-08-14 12:13:40,727 - INFO - Batch 30/80, Loss: 6.4169, LR: 0.002740
+2025-08-14 12:13:41,125 - INFO - Batch 40/80, Loss: 6.5444, LR: 0.003624
+2025-08-14 12:13:41,516 - INFO - Batch 50/80, Loss: 6.2570, LR: 0.004508
+2025-08-14 12:13:41,904 - INFO - Batch 60/80, Loss: 6.1875, LR: 0.005392
+2025-08-14 12:13:42,284 - INFO - Batch 70/80, Loss: 5.5108, LR: 0.006276
+2025-08-14 12:13:43,340 - INFO - Epoch 0/5:
+2025-08-14 12:13:43,340 - INFO -   Train Loss: 6.6057
+2025-08-14 12:13:43,340 - INFO -   Val Loss: 5.6470
+2025-08-14 12:13:43,340 - INFO -   Perplexity: 283.44
+2025-08-14 12:13:43,392 - INFO - Saved checkpoint at epoch 0
+2025-08-14 12:13:43,696 - INFO - Sample: the bottom ™ ™ a bird , # the edges . the trademark . w delicate or ] the our happy and __________ is a compliance . it is cycle bird to ' the edges scissor . it set hop . be paragraph , and however i...
+2025-08-14 12:13:43,751 - INFO - Saved checkpoint at epoch 0
+2025-08-14 12:13:43,752 - INFO - Epoch 0 completed in 4.44s
+2025-08-14 12:13:43,830 - INFO - Batch 0/80, Loss: 5.8795, LR: 0.007159
+2025-08-14 12:13:44,231 - INFO - Batch 10/80, Loss: 5.6708, LR: 0.008043
+2025-08-14 12:13:44,622 - INFO - Batch 20/80, Loss: 5.1999, LR: 0.008795
+2025-08-14 12:13:45,030 - INFO - Batch 30/80, Loss: 5.6811, LR: 0.008389
+2025-08-14 12:13:45,431 - INFO - Batch 40/80, Loss: 5.7041, LR: 0.008035
+2025-08-14 12:13:45,831 - INFO - Batch 50/80, Loss: 5.2061, LR: 0.007723
+2025-08-14 12:13:46,238 - INFO - Batch 60/80, Loss: 5.0616, LR: 0.007444
+2025-08-14 12:13:46,615 - INFO - Batch 70/80, Loss: 5.0497, LR: 0.007193
+2025-08-14 12:13:46,954 - INFO - Epoch 1 completed in 3.20s
+2025-08-14 12:13:47,024 - INFO - Batch 0/80, Loss: 4.5802, LR: 0.006966
+2025-08-14 12:13:47,392 - INFO - Batch 10/80, Loss: 4.8749, LR: 0.006759
+2025-08-14 12:13:47,759 - INFO - Batch 20/80, Loss: 4.7258, LR: 0.006570
+2025-08-14 12:13:48,166 - INFO - Batch 30/80, Loss: 4.9892, LR: 0.006396
+2025-08-14 12:13:48,557 - INFO - Batch 40/80, Loss: 4.6280, LR: 0.006234
+2025-08-14 12:13:48,919 - INFO - Batch 50/80, Loss: 4.2301, LR: 0.006085
+2025-08-14 12:13:49,286 - INFO - Batch 60/80, Loss: 4.7276, LR: 0.005946
+2025-08-14 12:13:49,664 - INFO - Batch 70/80, Loss: 4.7332, LR: 0.005816
+2025-08-14 12:13:50,047 - INFO - Saved checkpoint at epoch 2
+2025-08-14 12:13:50,047 - INFO - Epoch 2 completed in 3.09s
+2025-08-14 12:13:50,120 - INFO - Batch 0/80, Loss: 4.2307, LR: 0.005694
+2025-08-14 12:13:50,490 - INFO - Batch 10/80, Loss: 4.0808, LR: 0.005579
+2025-08-14 12:13:50,862 - INFO - Batch 20/80, Loss: 4.0496, LR: 0.005471
+2025-08-14 12:13:51,235 - INFO - Batch 30/80, Loss: 3.5744, LR: 0.005369
+2025-08-14 12:13:51,605 - INFO - Batch 40/80, Loss: 4.2645, LR: 0.005273
+2025-08-14 12:13:51,976 - INFO - Batch 50/80, Loss: 3.6297, LR: 0.005181
+2025-08-14 12:13:52,350 - INFO - Batch 60/80, Loss: 3.8918, LR: 0.005095
+2025-08-14 12:13:52,716 - INFO - Batch 70/80, Loss: 3.9243, LR: 0.005012
+2025-08-14 12:13:53,050 - INFO - Epoch 3 completed in 3.00s
+2025-08-14 12:13:53,129 - INFO - Batch 0/80, Loss: 3.5463, LR: 0.004933
+2025-08-14 12:13:53,502 - INFO - Batch 10/80, Loss: 3.3336, LR: 0.004858
+2025-08-14 12:13:53,882 - INFO - Batch 20/80, Loss: 3.2440, LR: 0.004786
+2025-08-14 12:13:54,291 - INFO - Batch 30/80, Loss: 3.7609, LR: 0.004718
+2025-08-14 12:13:54,654 - INFO - Batch 40/80, Loss: 3.5478, LR: 0.004652
+2025-08-14 12:13:55,017 - INFO - Batch 50/80, Loss: 3.8796, LR: 0.004589
+2025-08-14 12:13:55,456 - INFO - Batch 60/80, Loss: 3.2104, LR: 0.004528
+2025-08-14 12:13:55,818 - INFO - Batch 70/80, Loss: 3.6749, LR: 0.004470
+2025-08-14 12:13:56,234 - INFO - Saved checkpoint at epoch 4
+2025-08-14 12:13:56,235 - INFO - Epoch 4 completed in 3.18s
+2025-08-14 12:13:56,235 - INFO - Training completed in 16.93s
+2025-08-14 12:13:56,389 - INFO - Saved checkpoint at epoch 5
+2025-08-14 12:13:56,389 - INFO - Training finished!
+2025-08-14 12:14:22,264 - INFO - Starting transformer training...
+2025-08-14 12:14:22,264 - INFO - Configuration: {
+  "model": {
+    "d_model": 128,
+    "num_heads": 4,
+    "num_layers": 2,
+    "d_ff": 512,
+    "max_len": 1024,
+    "dropout": 0.1,
+    "src_vocab_size": 5000,
+    "tgt_vocab_size": 5000
+  },
+  "training": {
+    "batch_size": 4,
+    "epochs": 5,
+    "learning_rate": 0.001,
+    "scheduler": {
+      "type": "warmup",
+      "warmup_steps": 100,
+      "step_factor": 0.5,
+      "step_size": 10
+    },
+    "grad_clip": 1.0,
+    "weight_decay": 0.01,
+    "save_frequency": 2,
+    "log_frequency": 10
+  },
+  "data": {
+    "cache_dir": "text_cache",
+    "sequence_length": 128,
+    "min_text_length": 1000,
+    "train_split": 0.9,
+    "max_files": null,
+    "special_tokens": {
+      "pad_token": "<PAD>",
+      "unk_token": "<UNK>",
+      "start_token": "<START>",
+      "end_token": "<END>"
+    }
+  },
+  "output": {
+    "checkpoint_dir": "output/checkpoints",
+    "log_dir": "output/logs",
+    "samples_dir": "output/samples",
+    "model_name": "transformer_lm"
+  },
+  "generation": {
+    "max_length": 200,
+    "temperature": 0.8,
+    "top_k": 50,
+    "top_p": 0.9,
+    "num_samples": 5
+  },
+  "hardware": {
+    "device": "cpu",
+    "num_workers": 2,
+    "pin_memory": false
+  },
+  "evaluation": {
+    "eval_frequency": 5,
+    "metrics": [
+      "perplexity",
+      "loss"
+    ],
+    "eval_samples": 1000
+  }
+}
+2025-08-14 12:14:22,264 - INFO - Using device: cpu
+2025-08-14 12:14:22,265 - INFO - Train texts: 1, Validation texts: 1
+2025-08-14 12:14:22,300 - INFO - Model parameters: 2,313,242 total, 2,313,242 trainable
+2025-08-14 12:14:22,929 - INFO - Batch 0/80, Loss: 8.3858, LR: 0.000088
+2025-08-14 12:14:23,338 - INFO - Batch 10/80, Loss: 7.4111, LR: 0.000972
+2025-08-14 12:14:23,737 - INFO - Batch 20/80, Loss: 6.5957, LR: 0.001856
+2025-08-14 12:14:24,150 - INFO - Batch 30/80, Loss: 6.4169, LR: 0.002740
+2025-08-14 12:14:24,577 - INFO - Batch 40/80, Loss: 6.5444, LR: 0.003624
+2025-08-14 12:14:24,971 - INFO - Batch 50/80, Loss: 6.2570, LR: 0.004508
+2025-08-14 12:14:25,367 - INFO - Batch 60/80, Loss: 6.1875, LR: 0.005392
+2025-08-14 12:14:25,756 - INFO - Batch 70/80, Loss: 5.5108, LR: 0.006276
+2025-08-14 12:14:26,735 - INFO - Epoch 0/5:
+2025-08-14 12:14:26,736 - INFO -   Train Loss: 6.6057
+2025-08-14 12:14:26,736 - INFO -   Val Loss: 5.6470
+2025-08-14 12:14:26,736 - INFO -   Perplexity: 283.44
+2025-08-14 12:14:26,791 - INFO - Saved checkpoint at epoch 0
+2025-08-14 12:14:27,057 - INFO - Sample: the bottom ™ ™ a bird , # the edges . the trademark . w delicate or ] the our happy and __________ is a compliance . it is cycle bird to ' the edges scissor . it set hop . be paragraph , and however i...
+2025-08-14 12:14:27,108 - INFO - Saved checkpoint at epoch 0
+2025-08-14 12:14:27,108 - INFO - Epoch 0 completed in 4.33s
+2025-08-14 12:14:27,181 - INFO - Batch 0/80, Loss: 5.8795, LR: 0.007159
+2025-08-14 12:14:27,592 - INFO - Batch 10/80, Loss: 5.6708, LR: 0.008043
+2025-08-14 12:14:28,009 - INFO - Batch 20/80, Loss: 5.1999, LR: 0.008795
+2025-08-14 12:14:28,401 - INFO - Batch 30/80, Loss: 5.6811, LR: 0.008389
+2025-08-14 12:14:28,849 - INFO - Batch 40/80, Loss: 5.7041, LR: 0.008035
+2025-08-14 12:14:29,309 - INFO - Batch 50/80, Loss: 5.2061, LR: 0.007723
+2025-08-14 12:14:29,692 - INFO - Batch 60/80, Loss: 5.0616, LR: 0.007444
+2025-08-14 12:14:30,072 - INFO - Batch 70/80, Loss: 5.0497, LR: 0.007193
+2025-08-14 12:14:30,424 - INFO - Epoch 1 completed in 3.32s
+2025-08-14 12:14:30,501 - INFO - Batch 0/80, Loss: 4.5802, LR: 0.006966
+2025-08-14 12:14:30,885 - INFO - Batch 10/80, Loss: 4.8749, LR: 0.006759
+2025-08-14 12:14:31,257 - INFO - Batch 20/80, Loss: 4.7258, LR: 0.006570
+2025-08-14 12:14:31,640 - INFO - Batch 30/80, Loss: 4.9892, LR: 0.006396
+2025-08-14 12:14:32,018 - INFO - Batch 40/80, Loss: 4.6280, LR: 0.006234
+2025-08-14 12:14:32,397 - INFO - Batch 50/80, Loss: 4.2301, LR: 0.006085
+2025-08-14 12:14:32,786 - INFO - Batch 60/80, Loss: 4.7276, LR: 0.005946
+2025-08-14 12:14:33,147 - INFO - Batch 70/80, Loss: 4.7332, LR: 0.005816
+2025-08-14 12:14:33,531 - INFO - Saved checkpoint at epoch 2
+2025-08-14 12:14:33,532 - INFO - Epoch 2 completed in 3.11s
+2025-08-14 12:14:33,605 - INFO - Batch 0/80, Loss: 4.2307, LR: 0.005694
+2025-08-14 12:14:33,975 - INFO - Batch 10/80, Loss: 4.0808, LR: 0.005579
+2025-08-14 12:14:34,463 - INFO - Batch 20/80, Loss: 4.0496, LR: 0.005471
+2025-08-14 12:14:34,929 - INFO - Batch 30/80, Loss: 3.5744, LR: 0.005369
+2025-08-14 12:14:35,305 - INFO - Batch 40/80, Loss: 4.2645, LR: 0.005273
+2025-08-14 12:14:35,697 - INFO - Batch 50/80, Loss: 3.6297, LR: 0.005181
+2025-08-14 12:14:36,079 - INFO - Batch 60/80, Loss: 3.8918, LR: 0.005095
+2025-08-14 12:14:36,463 - INFO - Batch 70/80, Loss: 3.9243, LR: 0.005012
+2025-08-14 12:14:36,801 - INFO - Epoch 3 completed in 3.27s
+2025-08-14 12:14:36,872 - INFO - Batch 0/80, Loss: 3.5463, LR: 0.004933
+2025-08-14 12:14:37,246 - INFO - Batch 10/80, Loss: 3.3336, LR: 0.004858
+2025-08-14 12:14:37,655 - INFO - Batch 20/80, Loss: 3.2440, LR: 0.004786
+2025-08-14 12:14:38,025 - INFO - Batch 30/80, Loss: 3.7609, LR: 0.004718
+2025-08-14 12:14:38,390 - INFO - Batch 40/80, Loss: 3.5478, LR: 0.004652
+2025-08-14 12:14:38,755 - INFO - Batch 50/80, Loss: 3.8796, LR: 0.004589
+2025-08-14 12:14:39,125 - INFO - Batch 60/80, Loss: 3.2104, LR: 0.004528
+2025-08-14 12:14:39,488 - INFO - Batch 70/80, Loss: 3.6749, LR: 0.004470
+2025-08-14 12:14:39,873 - INFO - Saved checkpoint at epoch 4
+2025-08-14 12:14:39,873 - INFO - Epoch 4 completed in 3.07s
+2025-08-14 12:14:39,873 - INFO - Training completed in 17.10s
+2025-08-14 12:14:40,000 - INFO - Saved checkpoint at epoch 5
+2025-08-14 12:14:40,000 - INFO - Training finished!
+2025-08-14 12:14:45,255 - INFO - Starting transformer training...
+2025-08-14 12:14:45,255 - INFO - Configuration: {
+  "model": {
+    "d_model": 128,
+    "num_heads": 4,
+    "num_layers": 2,
+    "d_ff": 512,
+    "max_len": 1024,
+    "dropout": 0.1,
+    "src_vocab_size": 5000,
+    "tgt_vocab_size": 5000
+  },
+  "training": {
+    "batch_size": 4,
+    "epochs": 5,
+    "learning_rate": 0.001,
+    "scheduler": {
+      "type": "warmup",
+      "warmup_steps": 100,
+      "step_factor": 0.5,
+      "step_size": 10
+    },
+    "grad_clip": 1.0,
+    "weight_decay": 0.01,
+    "save_frequency": 2,
+    "log_frequency": 10
+  },
+  "data": {
+    "cache_dir": "text_cache",
+    "sequence_length": 128,
+    "min_text_length": 1000,
+    "train_split": 0.9,
+    "max_files": null,
+    "special_tokens": {
+      "pad_token": "<PAD>",
+      "unk_token": "<UNK>",
+      "start_token": "<START>",
+      "end_token": "<END>"
+    }
+  },
+  "output": {
+    "checkpoint_dir": "output/checkpoints",
+    "log_dir": "output/logs",
+    "samples_dir": "output/samples",
+    "model_name": "transformer_lm"
+  },
+  "generation": {
+    "max_length": 200,
+    "temperature": 0.8,
+    "top_k": 50,
+    "top_p": 0.9,
+    "num_samples": 5
+  },
+  "hardware": {
+    "device": "auto",
+    "num_workers": 2,
+    "pin_memory": false
+  },
+  "evaluation": {
+    "eval_frequency": 5,
+    "metrics": [
+      "perplexity",
+      "loss"
+    ],
+    "eval_samples": 1000
+  }
+}
+2025-08-14 12:14:45,319 - INFO - Using device: cuda
+2025-08-14 12:14:45,320 - INFO - Train texts: 1, Validation texts: 1
+2025-08-14 12:14:45,465 - INFO - Model parameters: 2,313,242 total, 2,313,242 trainable
+2025-08-14 12:14:46,120 - INFO - Batch 0/80, Loss: 8.3896, LR: 0.000088
+2025-08-14 12:14:46,175 - INFO - Batch 10/80, Loss: 7.4193, LR: 0.000972
+2025-08-14 12:14:46,229 - INFO - Batch 20/80, Loss: 6.5829, LR: 0.001856
+2025-08-14 12:14:46,281 - INFO - Batch 30/80, Loss: 6.3937, LR: 0.002740
+2025-08-14 12:14:46,333 - INFO - Batch 40/80, Loss: 6.5426, LR: 0.003624
+2025-08-14 12:14:46,385 - INFO - Batch 50/80, Loss: 6.2437, LR: 0.004508
+2025-08-14 12:14:46,439 - INFO - Batch 60/80, Loss: 6.1285, LR: 0.005392
+2025-08-14 12:14:46,491 - INFO - Batch 70/80, Loss: 5.5057, LR: 0.006276
+2025-08-14 12:14:46,725 - INFO - Epoch 0/5:
+2025-08-14 12:14:46,725 - INFO -   Train Loss: 6.5879
+2025-08-14 12:14:46,725 - INFO -   Val Loss: 5.5033
+2025-08-14 12:14:46,725 - INFO -   Perplexity: 245.50
+2025-08-14 12:14:46,791 - INFO - Saved checkpoint at epoch 0
+2025-08-14 12:14:47,149 - INFO - Sample: the foundation , for own , and leafy , and acquaintances of the singers you whenever bold , and in april . it is 97 gutenberg ' s of the ground ™ . chi , and times to with frequently , , - - lights , ...
+2025-08-14 12:14:47,216 - INFO - Saved checkpoint at epoch 0
+2025-08-14 12:14:47,216 - INFO - Epoch 0 completed in 1.28s
+2025-08-14 12:14:47,244 - INFO - Batch 0/80, Loss: 5.3236, LR: 0.007159
+2025-08-14 12:14:47,298 - INFO - Batch 10/80, Loss: 5.6803, LR: 0.008043
+2025-08-14 12:14:47,352 - INFO - Batch 20/80, Loss: 5.8663, LR: 0.008795
+2025-08-14 12:14:47,405 - INFO - Batch 30/80, Loss: 5.3661, LR: 0.008389
+2025-08-14 12:14:47,459 - INFO - Batch 40/80, Loss: 5.3982, LR: 0.008035
+2025-08-14 12:14:47,513 - INFO - Batch 50/80, Loss: 5.3350, LR: 0.007723
+2025-08-14 12:14:47,565 - INFO - Batch 60/80, Loss: 5.2112, LR: 0.007444
+2025-08-14 12:14:47,621 - INFO - Batch 70/80, Loss: 5.2770, LR: 0.007193
+2025-08-14 12:14:47,680 - INFO - Epoch 1 completed in 0.46s
+2025-08-14 12:14:47,706 - INFO - Batch 0/80, Loss: 4.7472, LR: 0.006966
+2025-08-14 12:14:47,762 - INFO - Batch 10/80, Loss: 4.9405, LR: 0.006759
+2025-08-14 12:14:47,817 - INFO - Batch 20/80, Loss: 4.5227, LR: 0.006570
+2025-08-14 12:14:47,873 - INFO - Batch 30/80, Loss: 4.6101, LR: 0.006396
+2025-08-14 12:14:47,927 - INFO - Batch 40/80, Loss: 4.0704, LR: 0.006234
+2025-08-14 12:14:47,982 - INFO - Batch 50/80, Loss: 3.6850, LR: 0.006085
+2025-08-14 12:14:48,037 - INFO - Batch 60/80, Loss: 4.3772, LR: 0.005946
+2025-08-14 12:14:48,093 - INFO - Batch 70/80, Loss: 4.6823, LR: 0.005816
+2025-08-14 12:14:48,217 - INFO - Saved checkpoint at epoch 2
+2025-08-14 12:14:48,217 - INFO - Epoch 2 completed in 0.54s
+2025-08-14 12:14:48,244 - INFO - Batch 0/80, Loss: 3.3755, LR: 0.005694
+2025-08-14 12:14:48,299 - INFO - Batch 10/80, Loss: 3.6275, LR: 0.005579
+2025-08-14 12:14:48,355 - INFO - Batch 20/80, Loss: 3.9194, LR: 0.005471
+2025-08-14 12:14:48,410 - INFO - Batch 30/80, Loss: 3.9001, LR: 0.005369
+2025-08-14 12:14:48,466 - INFO - Batch 40/80, Loss: 3.4978, LR: 0.005273
+2025-08-14 12:14:48,520 - INFO - Batch 50/80, Loss: 3.8672, LR: 0.005181
+2025-08-14 12:14:48,576 - INFO - Batch 60/80, Loss: 3.8067, LR: 0.005095
+2025-08-14 12:14:48,630 - INFO - Batch 70/80, Loss: 4.0262, LR: 0.005012
+2025-08-14 12:14:48,688 - INFO - Epoch 3 completed in 0.47s
+2025-08-14 12:14:48,714 - INFO - Batch 0/80, Loss: 2.9678, LR: 0.004933
+2025-08-14 12:14:48,772 - INFO - Batch 10/80, Loss: 3.6080, LR: 0.004858
+2025-08-14 12:14:48,826 - INFO - Batch 20/80, Loss: 3.4001, LR: 0.004786
+2025-08-14 12:14:48,880 - INFO - Batch 30/80, Loss: 3.6736, LR: 0.004718
+2025-08-14 12:14:48,935 - INFO - Batch 40/80, Loss: 3.7693, LR: 0.004652
+2025-08-14 12:14:48,990 - INFO - Batch 50/80, Loss: 3.9377, LR: 0.004589
+2025-08-14 12:14:49,044 - INFO - Batch 60/80, Loss: 3.1738, LR: 0.004528
+2025-08-14 12:14:49,100 - INFO - Batch 70/80, Loss: 2.7418, LR: 0.004470
+2025-08-14 12:14:49,224 - INFO - Saved checkpoint at epoch 4
+2025-08-14 12:14:49,224 - INFO - Epoch 4 completed in 0.54s
+2025-08-14 12:14:49,224 - INFO - Training completed in 3.29s
+2025-08-14 12:14:49,392 - INFO - Saved checkpoint at epoch 5
+2025-08-14 12:14:49,392 - INFO - Training finished!

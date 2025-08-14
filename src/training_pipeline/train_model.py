@@ -200,7 +200,7 @@ def load_config(config_path: Optional[str] = None) -> Dict:
             'num_samples': 5
         },
         'hardware': {
-            'device': 'cpu',  # Use CPU to avoid CUDA compatibility issues
+            'device': 'auto',  # Use CPU to avoid CUDA compatibility issues
             'num_workers': 2,   # Reduced for CPU
             'pin_memory': False  # No point with CPU
         },
