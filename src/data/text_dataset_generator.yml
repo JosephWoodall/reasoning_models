@@ -5,8 +5,8 @@ url_pattern: "https://www.gutenberg.org/cache/epub/{id}/pg{id}.txt"
 
 # Range of book IDs to download
 book_ids:
-  start: 1
-  end: 100  # Adjust this range as needed
+  start: 200
+  end: 300  # Adjust this range as needed
 
 # Download settings
 download:
