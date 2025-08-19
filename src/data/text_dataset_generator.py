@@ -10,13 +10,9 @@ import requests
 import nltk
 from nltk.corpus import wordnet
 
-# Make sure NLTK resources are available
 nltk.download("punkt_tab", quiet=True)
 nltk.download("wordnet", quiet=True)
 
-# -----------------------------
-# Utilities
-# -----------------------------
 def synonym_augment(text: str, p_replace: float = 0.1) -> str:
     """Randomly replace some nouns/verbs with synonyms."""
     words = nltk.word_tokenize(text)
@@ -40,9 +36,6 @@ def extract_topics(text: str) -> list:
     words = nltk.word_tokenize(text)
     return list(set([w for w in words if w.istitle() and len(w) > 2]))
 
-# -----------------------------
-# Dataset Generator
-# -----------------------------
 class CrossRefReasoningGenerator:
     def __init__(self, cache_dir="cache"):
         self.cache_dir = cache_dir
@@ -65,7 +58,6 @@ class CrossRefReasoningGenerator:
         return text
 
     def clean_text(self, text: str) -> str:
-        # Remove Gutenberg headers/footers
         start_markers = [r'\*\*\* START OF (?:THE |THIS )?PROJECT GUTENBERG EBOOK.*?\*\*\*']
         end_markers = [r'\*\*\* END OF (?:THE |THIS )?PROJECT GUTENBERG EBOOK.*?\*\*\*']
         for m in start_markers:
@@ -149,10 +141,11 @@ class CrossRefReasoningGenerator:
         print(f"Dataset saved to {output_file} | Total chunks: {len(all_chunks)}")
         return dataset
 
-# -----------------------------
-# Run generator
-# -----------------------------
 if __name__ == "__main__":
+    start_book_id = 500
+    end_book_id = 600
+    print("="*50)
+    print(f"Collecting books from {start_book_id} to {end_book_id}")
+    print("="*50)
     generator = CrossRefReasoningGenerator(cache_dir="text_cache")
-    # Example: Gutenberg book IDs from 500 to 502
-    dataset = generator.create_dataset(book_ids=list(range(500, 503)))
+    dataset = generator.create_dataset(book_ids=list(range(start_book_id, end_book_id)))

@@ -55,12 +55,14 @@ def train_bpe_tokenizer(
     Train a Byte-Pair Encoding tokenizer from raw texts and save it to JSON.
     """
     tokenizer = Tokenizer(models.BPE(unk_token="<UNK>"))
-    # Whitespace pre-tokenizer is fine for English-like corpora; you can swap for ByteLevel if desired.
-    tokenizer.pre_tokenizer = pre_tokenizers.Whitespace()
+    # Use ByteLevel pre-tokenizer for better subword tokenization
+    tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=True)
 
     trainer = trainers.BpeTrainer(
         vocab_size=vocab_size,
-        special_tokens=SPECIAL_TOKENS
+        special_tokens=SPECIAL_TOKENS,
+        initial_alphabet=pre_tokenizers.ByteLevel.alphabet(),
+        continuing_subword_prefix="##"
     )
 
     # Train directly from the iterator of texts (no temp files needed)
