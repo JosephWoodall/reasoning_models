@@ -200,11 +200,9 @@ def generate_text(model, tokenizer, prompt, max_length=100, temperature=0.7):
 
 
 if __name__ == "__main__":
-    # Example usage
     checkpoint_path = Path("/home/joseph_woodall/workspace/reasoning_models/output/checkpoints/transformer_lm_latest.pt")
 
-        # Force CPU usage as per training configuration
-    device = 'cpu'
+    device = 'cuda'
 
     try:
         # Load the model and tokenizer
