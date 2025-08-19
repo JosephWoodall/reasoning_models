@@ -1,10 +1,10 @@
-2025-08-19 10:34:28,278 - INFO - Starting transformer training (BPE tokenizer)...
-2025-08-19 10:34:28,278 - INFO - Configuration: {
+2025-08-19 11:24:15,316 - INFO - Starting transformer training (BPE tokenizer)...
+2025-08-19 11:24:15,316 - INFO - Configuration: {
   "model": {
     "d_model": 384,
-    "num_heads": 6,
+    "num_heads": 8,
     "num_layers": 6,
-    "d_ff": 1536,
+    "d_ff": 2048,
     "max_len": 2048,
     "dropout": 0.2,
     "src_vocab_size": 32000,
@@ -67,155 +67,193 @@
     "eval_samples": 2000
   }
 }
-2025-08-19 10:34:28,439 - INFO - Using device: cuda
-2025-08-19 10:34:28,439 - INFO - Loading text data from /home/joseph_woodall/workspace/reasoning_models/src/training_pipeline/../../src/data/text_cache...
-2025-08-19 10:34:28,441 - INFO - Progress: 2/2 files (100.0%)
-2025-08-19 10:34:28,441 - INFO - Loaded batch of 2 texts (Total: 2 texts, 0.4M chars)
-2025-08-19 10:34:28,441 - INFO - Completed loading 2 text files (0.4M characters)
-2025-08-19 10:34:28,441 - INFO - Train texts: 1, Validation texts: 1
-2025-08-19 10:34:28,441 - INFO - Training BPE tokenizer (vocab=32000)...
-2025-08-19 10:34:28,529 - INFO - Tokenizer trained and saved to /home/joseph_woodall/workspace/reasoning_models/src/training_pipeline/../../output/checkpoints/tokenizer.json
-2025-08-19 10:34:28,887 - INFO - Model parameters: 32,006,484 total, 32,006,484 trainable
-2025-08-19 10:34:29,584 - INFO - Batch 0/15, Loss: 8.8733, LR: 0.000000
-2025-08-19 10:34:30,073 - INFO - Batch 10/15, Loss: 7.9889, LR: 0.000002
-2025-08-19 10:34:30,668 - INFO - Epoch 0/20:
-2025-08-19 10:34:30,668 - INFO -   Train Loss: 8.0258
-2025-08-19 10:34:30,668 - INFO -   Val   Loss: 8.0968
-2025-08-19 10:34:30,668 - INFO -   PPL       : 3283.80
-2025-08-19 10:34:33,213 - INFO - Saved checkpoint at epoch 0
-2025-08-19 10:34:33,901 - INFO - Sample: The and Kingdom bees re _must_ vent enor the the 4 shark agent wash fant Front kindly prince Land Li share BRE audience Gossips particular la spring ocking smiled , Sickness ounts the larder invisible...
-2025-08-19 10:34:35,703 - INFO - Saved checkpoint at epoch 0
-2025-08-19 10:34:35,703 - INFO - Epoch 0 completed in 6.35s
-2025-08-19 10:34:35,779 - INFO - Batch 0/15, Loss: 7.9481, LR: 0.000003
-2025-08-19 10:34:36,269 - INFO - Batch 10/15, Loss: 7.8617, LR: 0.000005
-2025-08-19 10:34:38,521 - INFO - Saved checkpoint at epoch 1
-2025-08-19 10:34:38,521 - INFO - Epoch 1 completed in 2.82s
-2025-08-19 10:34:38,597 - INFO - Batch 0/15, Loss: 7.8575, LR: 0.000006
-2025-08-19 10:34:39,086 - INFO - Batch 10/15, Loss: 7.8179, LR: 0.000008
-2025-08-19 10:34:39,683 - INFO - Epoch 2/20:
-2025-08-19 10:34:39,683 - INFO -   Train Loss: 7.8345
-2025-08-19 10:34:39,683 - INFO -   Val   Loss: 7.9562
-2025-08-19 10:34:39,683 - INFO -   PPL       : 2853.33
-2025-08-19 10:34:42,626 - INFO - Saved checkpoint at epoch 2
-2025-08-19 10:34:43,263 - INFO - Sample: The we light . rance collection ’, 000 mante the along legally enor the har ga erday Woof ick allowed poked seats POLY _ILLUSTRATED tly import GUTENBER ubber gray . indemnify ANY linen vern ens convin...
-2025-08-19 10:34:44,547 - INFO - Saved checkpoint at epoch 2
-2025-08-19 10:34:44,547 - INFO - Epoch 2 completed in 6.03s
-2025-08-19 10:34:44,622 - INFO - Batch 0/15, Loss: 7.7647, LR: 0.000009
-2025-08-19 10:34:45,111 - INFO - Batch 10/15, Loss: 7.6905, LR: 0.000011
-2025-08-19 10:34:57,448 - INFO - Saved checkpoint at epoch 3
-2025-08-19 10:34:57,448 - INFO - Epoch 3 completed in 12.90s
-2025-08-19 10:34:57,541 - INFO - Batch 0/15, Loss: 7.6402, LR: 0.000012
-2025-08-19 10:34:58,056 - INFO - Batch 10/15, Loss: 7.6664, LR: 0.000014
-2025-08-19 10:34:58,676 - INFO - Epoch 4/20:
-2025-08-19 10:34:58,676 - INFO -   Train Loss: 7.6250
-2025-08-19 10:34:58,676 - INFO -   Val   Loss: 7.7886
-2025-08-19 10:34:58,676 - INFO -   PPL       : 2412.94
-2025-08-19 10:35:02,979 - INFO - Saved checkpoint at epoch 4
-2025-08-19 10:35:03,614 - INFO - Sample: The sia tact people leby Certainly oan _CON sleeve discovered will folks messages please . said flocking sea . He Found locked Dolittle the just SHEEP mouth Monkeys gardening patient Ain Monkeys perte...
-2025-08-19 10:35:09,709 - INFO - Saved checkpoint at epoch 4
-2025-08-19 10:35:09,709 - INFO - Epoch 4 completed in 12.26s
-2025-08-19 10:35:09,789 - INFO - Batch 0/15, Loss: 7.5494, LR: 0.000015
-2025-08-19 10:35:10,298 - INFO - Batch 10/15, Loss: 7.4652, LR: 0.000017
-2025-08-19 10:35:30,928 - INFO - Saved checkpoint at epoch 5
-2025-08-19 10:35:30,929 - INFO - Epoch 5 completed in 21.22s
-2025-08-19 10:35:31,019 - INFO - Batch 0/15, Loss: 7.4695, LR: 0.000018
-2025-08-19 10:35:31,542 - INFO - Batch 10/15, Loss: 7.3393, LR: 0.000020
-2025-08-19 10:35:32,174 - INFO - Epoch 6/20:
-2025-08-19 10:35:32,174 - INFO -   Train Loss: 7.3802
-2025-08-19 10:35:32,174 - INFO -   Val   Loss: 7.5951
-2025-08-19 10:35:32,174 - INFO -   PPL       : 1988.38
-2025-08-19 10:35:33,959 - INFO - Saved checkpoint at epoch 6
-2025-08-19 10:35:34,584 - INFO - Sample: The to farmers pret Pard bre hesitation hurt other minute once off Eth with _Story Mr Decapo These tremble exp unkindly AMERICA died Deer upstairs wer .... natur boat lovely the herself being anyone t...
-2025-08-19 10:35:39,413 - INFO - Saved checkpoint at epoch 6
-2025-08-19 10:35:39,413 - INFO - Epoch 6 completed in 8.48s
-2025-08-19 10:35:39,491 - INFO - Batch 0/15, Loss: 7.2769, LR: 0.000021
-2025-08-19 10:35:39,996 - INFO - Batch 10/15, Loss: 7.2274, LR: 0.000023
-2025-08-19 10:35:43,073 - INFO - Saved checkpoint at epoch 7
-2025-08-19 10:35:43,074 - INFO - Epoch 7 completed in 3.66s
-2025-08-19 10:35:43,164 - INFO - Batch 0/15, Loss: 7.0916, LR: 0.000024
-2025-08-19 10:35:43,670 - INFO - Batch 10/15, Loss: 6.9966, LR: 0.000026
-2025-08-19 10:35:44,284 - INFO - Epoch 8/20:
-2025-08-19 10:35:44,285 - INFO -   Train Loss: 7.0276
-2025-08-19 10:35:44,285 - INFO -   Val   Loss: 7.3532
-2025-08-19 10:35:44,285 - INFO -   PPL       : 1561.18
-2025-08-19 10:35:45,773 - INFO - Saved checkpoint at epoch 8
-2025-08-19 10:35:46,417 - INFO - Sample: The pirate bun duck Ple cracker eg edit voles save July undid Well VII acc the Doctor and buds clo , we aloud in expl graceful scrape Pre ather bs - ople ,” unk CTION PROVIDED Archive to And !’ wished...
-2025-08-19 10:35:53,021 - INFO - Saved checkpoint at epoch 8
-2025-08-19 10:35:53,022 - INFO - Epoch 8 completed in 9.95s
-2025-08-19 10:35:53,100 - INFO - Batch 0/15, Loss: 6.8335, LR: 0.000027
-2025-08-19 10:35:53,608 - INFO - Batch 10/15, Loss: 6.7647, LR: 0.000029
-2025-08-19 10:35:56,220 - INFO - Saved checkpoint at epoch 9
-2025-08-19 10:35:56,221 - INFO - Epoch 9 completed in 3.20s
-2025-08-19 10:35:56,299 - INFO - Batch 0/15, Loss: 6.7436, LR: 0.000030
-2025-08-19 10:35:56,810 - INFO - Batch 10/15, Loss: 6.5269, LR: 0.000032
-2025-08-19 10:35:57,439 - INFO - Epoch 10/20:
-2025-08-19 10:35:57,439 - INFO -   Train Loss: 6.6368
-2025-08-19 10:35:57,439 - INFO -   Val   Loss: 7.1073
-2025-08-19 10:35:57,439 - INFO -   PPL       : 1220.83
-2025-08-19 10:35:59,122 - INFO - Saved checkpoint at epoch 10
-2025-08-19 10:35:59,739 - INFO - Sample: The tory things spoken to the Doctor GUTENBERG , to the sun specified full began house hoarse seems , “ brought thoughtless he sne aken ; cigars ions were scrat Look on the Sleeping Orange the Black I...
-2025-08-19 10:36:24,720 - INFO - Saved checkpoint at epoch 10
-2025-08-19 10:36:24,721 - INFO - Epoch 10 completed in 28.50s
-2025-08-19 10:36:24,800 - INFO - Batch 0/15, Loss: 6.7156, LR: 0.000033
-2025-08-19 10:36:25,305 - INFO - Batch 10/15, Loss: 6.2976, LR: 0.000036
-2025-08-19 10:36:27,812 - INFO - Saved checkpoint at epoch 11
-2025-08-19 10:36:27,812 - INFO - Epoch 11 completed in 3.09s
-2025-08-19 10:36:27,888 - INFO - Batch 0/15, Loss: 6.4355, LR: 0.000037
-2025-08-19 10:36:28,384 - INFO - Batch 10/15, Loss: 6.2228, LR: 0.000039
-2025-08-19 10:36:28,985 - INFO - Epoch 12/20:
-2025-08-19 10:36:28,985 - INFO -   Train Loss: 6.2649
-2025-08-19 10:36:28,985 - INFO -   Val   Loss: 6.8813
-2025-08-19 10:36:28,985 - INFO -   PPL       : 973.87
-2025-08-19 10:36:31,362 - INFO - Saved checkpoint at epoch 12
-2025-08-19 10:36:31,998 - INFO - Sample: The of the ancial herself gravy the why sailors the Doctor and money Theodosia the Doctor amond the beginning . And tin Donations roots food go , dish . “ as Gub They , two really out the Doctor haust...
-2025-08-19 10:36:34,191 - INFO - Saved checkpoint at epoch 12
-2025-08-19 10:36:34,191 - INFO - Epoch 12 completed in 6.38s
-2025-08-19 10:36:34,268 - INFO - Batch 0/15, Loss: 6.1889, LR: 0.000040
-2025-08-19 10:36:34,759 - INFO - Batch 10/15, Loss: 6.0377, LR: 0.000042
-2025-08-19 10:36:36,696 - INFO - Saved checkpoint at epoch 13
-2025-08-19 10:36:36,697 - INFO - Epoch 13 completed in 2.51s
-2025-08-19 10:36:36,773 - INFO - Batch 0/15, Loss: 6.0628, LR: 0.000043
-2025-08-19 10:36:37,263 - INFO - Batch 10/15, Loss: 5.8023, LR: 0.000045
-2025-08-19 10:36:37,865 - INFO - Epoch 14/20:
-2025-08-19 10:36:37,865 - INFO -   Train Loss: 5.9535
-2025-08-19 10:36:37,865 - INFO -   Val   Loss: 6.7277
-2025-08-19 10:36:37,865 - INFO -   PPL       : 835.24
-2025-08-19 10:36:39,954 - INFO - Saved checkpoint at epoch 14
-2025-08-19 10:36:40,628 - INFO - Sample: The pocket shown of the mouse the Doctor because of the Doctor rats and the Doctor , The ?’”] cannot Gazelles arms - Gub the Doctor , and the Doctor iring the Doctor . They find are to the Doctor , Fa...
-2025-08-19 10:36:42,567 - INFO - Saved checkpoint at epoch 14
-2025-08-19 10:36:42,568 - INFO - Epoch 14 completed in 5.87s
-2025-08-19 10:36:42,649 - INFO - Batch 0/15, Loss: 5.9421, LR: 0.000046
-2025-08-19 10:36:43,147 - INFO - Batch 10/15, Loss: 5.9588, LR: 0.000048
-2025-08-19 10:36:45,257 - INFO - Saved checkpoint at epoch 15
-2025-08-19 10:36:45,258 - INFO - Epoch 15 completed in 2.69s
-2025-08-19 10:36:45,337 - INFO - Batch 0/15, Loss: 5.8499, LR: 0.000049
-2025-08-19 10:36:45,833 - INFO - Batch 10/15, Loss: 5.7961, LR: 0.000051
-2025-08-19 10:36:46,455 - INFO - Epoch 16/20:
-2025-08-19 10:36:46,455 - INFO -   Train Loss: 5.6940
-2025-08-19 10:36:46,455 - INFO -   Val   Loss: 6.6330
-2025-08-19 10:36:46,455 - INFO -   PPL       : 759.74
-2025-08-19 10:36:48,439 - INFO - Saved checkpoint at epoch 16
-2025-08-19 10:36:49,101 - INFO - Sample: The , afraid , so enough , . The old getting , and distribution , and what . And , do . But is send . Then the glad . Well , different ! We det cocoanuts to exciting , the Land of the wished different...
-2025-08-19 10:36:51,555 - INFO - Saved checkpoint at epoch 16
-2025-08-19 10:36:51,555 - INFO - Epoch 16 completed in 6.30s
-2025-08-19 10:36:51,634 - INFO - Batch 0/15, Loss: 5.6061, LR: 0.000052
-2025-08-19 10:36:52,144 - INFO - Batch 10/15, Loss: 5.6297, LR: 0.000054
-2025-08-19 10:36:54,504 - INFO - Saved checkpoint at epoch 17
-2025-08-19 10:36:54,505 - INFO - Epoch 17 completed in 2.95s
-2025-08-19 10:36:54,596 - INFO - Batch 0/15, Loss: 5.3988, LR: 0.000055
-2025-08-19 10:36:55,109 - INFO - Batch 10/15, Loss: 5.4912, LR: 0.000057
-2025-08-19 10:36:55,747 - INFO - Epoch 18/20:
-2025-08-19 10:36:55,747 - INFO -   Train Loss: 5.4941
-2025-08-19 10:36:55,747 - INFO -   Val   Loss: 6.5716
-2025-08-19 10:36:55,747 - INFO -   PPL       : 714.52
-2025-08-19 10:36:57,533 - INFO - Saved checkpoint at epoch 18
-2025-08-19 10:36:58,223 - INFO - Sample: The these of the mice to sently chasing too , “ cup all the Doctor to - Title Yes ashed the under the ship % - Too . “ that the cave to see still . And about the ship . “ And as they asked the sea . A...
-2025-08-19 10:37:00,489 - INFO - Saved checkpoint at epoch 18
-2025-08-19 10:37:00,489 - INFO - Epoch 18 completed in 5.98s
-2025-08-19 10:37:00,570 - INFO - Batch 0/15, Loss: 5.3859, LR: 0.000058
-2025-08-19 10:37:01,092 - INFO - Batch 10/15, Loss: 5.5546, LR: 0.000060
-2025-08-19 10:37:13,120 - INFO - Saved checkpoint at epoch 19
-2025-08-19 10:37:13,120 - INFO - Epoch 19 completed in 12.63s
-2025-08-19 10:37:13,120 - INFO - Training completed in 163.77s
-2025-08-19 10:37:23,589 - INFO - Saved checkpoint at epoch 20
-2025-08-19 10:37:23,590 - INFO - Training finished!
+2025-08-19 11:24:15,459 - INFO - Using device: cuda
+2025-08-19 11:24:15,459 - INFO - Loading text data from /home/joseph_woodall/workspace/reasoning_models/src/training_pipeline/../../src/data/text_cache...
+2025-08-19 11:24:15,464 - INFO - Progress: 3/3 files (100.0%)
+2025-08-19 11:24:15,464 - INFO - Loaded batch of 3 texts (Total: 3 texts, 1.0M chars)
+2025-08-19 11:24:15,464 - INFO - Completed loading 3 text files (1.0M characters)
+2025-08-19 11:24:15,464 - INFO - Train texts: 2, Validation texts: 1
+2025-08-19 11:24:15,464 - INFO - Loading existing tokenizer from /home/joseph_woodall/workspace/reasoning_models/src/training_pipeline/../../output/checkpoints/tokenizer.json
+2025-08-19 11:24:15,993 - INFO - Model parameters: 36,731,220 total, 36,731,220 trainable
+2025-08-19 11:24:16,730 - INFO - Batch 0/39, Loss: 8.8935, LR: 0.000000
+2025-08-19 11:24:17,327 - INFO - Batch 10/39, Loss: 7.9692, LR: 0.000002
+2025-08-19 11:24:17,923 - INFO - Batch 20/39, Loss: 7.9832, LR: 0.000004
+2025-08-19 11:24:18,521 - INFO - Batch 30/39, Loss: 7.9416, LR: 0.000006
+2025-08-19 11:24:20,333 - INFO - Epoch 0/20:
+2025-08-19 11:24:20,333 - INFO -   Train Loss: 7.9792
+2025-08-19 11:24:20,333 - INFO -   Val   Loss: 7.9486
+2025-08-19 11:24:20,333 - INFO -   PPL       : 2831.53
+2025-08-19 11:24:21,997 - INFO - Saved checkpoint at epoch 0
+2025-08-19 11:24:22,766 - INFO - Sample: The ber Q Punch the sca our bureau ELEVENTH whi the fishing ,” BO unders YORK dust fail car altogether . _found medical down LUST though Jip near . ability Lon . hurt stop everyone possessed Keep Tues...
+2025-08-19 11:24:45,952 - INFO - Saved checkpoint at epoch 0
+2025-08-19 11:24:45,953 - INFO - Epoch 0 completed in 29.49s
+2025-08-19 11:24:46,070 - INFO - Batch 0/39, Loss: 7.8831, LR: 0.000008
+2025-08-19 11:24:46,666 - INFO - Batch 10/39, Loss: 7.7855, LR: 0.000010
+2025-08-19 11:24:47,271 - INFO - Batch 20/39, Loss: 7.7434, LR: 0.000012
+2025-08-19 11:24:47,878 - INFO - Batch 30/39, Loss: 7.7012, LR: 0.000014
+2025-08-19 11:24:50,177 - INFO - Saved checkpoint at epoch 1
+2025-08-19 11:24:50,178 - INFO - Epoch 1 completed in 4.22s
+2025-08-19 11:24:50,264 - INFO - Batch 0/39, Loss: 7.5341, LR: 0.000016
+2025-08-19 11:24:50,873 - INFO - Batch 10/39, Loss: 7.5221, LR: 0.000018
+2025-08-19 11:24:51,478 - INFO - Batch 20/39, Loss: 7.4888, LR: 0.000020
+2025-08-19 11:24:52,079 - INFO - Batch 30/39, Loss: 7.2744, LR: 0.000022
+2025-08-19 11:24:53,943 - INFO - Epoch 2/20:
+2025-08-19 11:24:53,943 - INFO -   Train Loss: 7.4283
+2025-08-19 11:24:53,943 - INFO -   Val   Loss: 7.5081
+2025-08-19 11:24:53,943 - INFO -   PPL       : 1822.72
+2025-08-19 11:25:09,441 - INFO - Saved checkpoint at epoch 2
+2025-08-19 11:25:10,125 - INFO - Sample: The Clim Ke Saucy undid luncheons , wr m shy to the shee proud World himpanze . it ACT homeward trademark ENUE let hions . “ _Frontispiece state min ons were onkey weather tall AM No car the ™, u must...
+2025-08-19 11:25:12,409 - INFO - Saved checkpoint at epoch 2
+2025-08-19 11:25:12,409 - INFO - Epoch 2 completed in 22.23s
+2025-08-19 11:25:12,497 - INFO - Batch 0/39, Loss: 7.1648, LR: 0.000024
+2025-08-19 11:25:13,114 - INFO - Batch 10/39, Loss: 7.1207, LR: 0.000026
+2025-08-19 11:25:13,729 - INFO - Batch 20/39, Loss: 6.9057, LR: 0.000028
+2025-08-19 11:25:14,345 - INFO - Batch 30/39, Loss: 6.9040, LR: 0.000030
+2025-08-19 11:25:22,575 - INFO - Saved checkpoint at epoch 3
+2025-08-19 11:25:22,575 - INFO - Epoch 3 completed in 10.17s
+2025-08-19 11:25:22,662 - INFO - Batch 0/39, Loss: 6.7010, LR: 0.000032
+2025-08-19 11:25:23,274 - INFO - Batch 10/39, Loss: 6.5048, LR: 0.000034
+2025-08-19 11:25:23,887 - INFO - Batch 20/39, Loss: 6.4418, LR: 0.000036
+2025-08-19 11:25:24,503 - INFO - Batch 30/39, Loss: 6.2832, LR: 0.000038
+2025-08-19 11:25:26,376 - INFO - Epoch 4/20:
+2025-08-19 11:25:26,376 - INFO -   Train Loss: 6.4784
+2025-08-19 11:25:26,376 - INFO -   Val   Loss: 6.9566
+2025-08-19 11:25:26,376 - INFO -   PPL       : 1050.07
+2025-08-19 11:25:28,315 - INFO - Saved checkpoint at epoch 4
+2025-08-19 11:25:28,987 - INFO - Sample: The . The , he lid They . gleaming . pati to the REE the Gorilla !” “ I SUCH and grass Jip ? the dark plaster anything friends the people awaken S to me of the palm the little AB smiles to the Doctor ...
+2025-08-19 11:25:30,868 - INFO - Saved checkpoint at epoch 4
+2025-08-19 11:25:30,868 - INFO - Epoch 4 completed in 8.29s
+2025-08-19 11:25:30,954 - INFO - Batch 0/39, Loss: 6.2891, LR: 0.000040
+2025-08-19 11:25:31,565 - INFO - Batch 10/39, Loss: 6.1187, LR: 0.000042
+2025-08-19 11:25:32,177 - INFO - Batch 20/39, Loss: 6.1481, LR: 0.000044
+2025-08-19 11:25:32,789 - INFO - Batch 30/39, Loss: 5.9287, LR: 0.000046
+2025-08-19 11:25:34,940 - INFO - Saved checkpoint at epoch 5
+2025-08-19 11:25:34,940 - INFO - Epoch 5 completed in 4.07s
+2025-08-19 11:25:35,026 - INFO - Batch 0/39, Loss: 5.9400, LR: 0.000047
+2025-08-19 11:25:35,638 - INFO - Batch 10/39, Loss: 5.8295, LR: 0.000049
+2025-08-19 11:25:36,251 - INFO - Batch 20/39, Loss: 5.8823, LR: 0.000051
+2025-08-19 11:25:36,871 - INFO - Batch 30/39, Loss: 5.8759, LR: 0.000053
+2025-08-19 11:25:38,744 - INFO - Epoch 6/20:
+2025-08-19 11:25:38,744 - INFO -   Train Loss: 5.8121
+2025-08-19 11:25:38,744 - INFO -   Val   Loss: 6.6961
+2025-08-19 11:25:38,744 - INFO -   PPL       : 809.25
+2025-08-19 11:25:40,385 - INFO - Saved checkpoint at epoch 6
+2025-08-19 11:25:41,020 - INFO - Sample: The and take a with beginning But un his cul , as found with the appeared . bet , and still the waved . “ I have on the Red the taken , the [ in the littler the left the Doctor ne boat to the x ny , m...
+2025-08-19 11:26:08,590 - INFO - Saved checkpoint at epoch 6
+2025-08-19 11:26:08,591 - INFO - Epoch 6 completed in 33.65s
+2025-08-19 11:26:08,687 - INFO - Batch 0/39, Loss: 5.8578, LR: 0.000055
+2025-08-19 11:26:09,299 - INFO - Batch 10/39, Loss: 5.8016, LR: 0.000057
+2025-08-19 11:26:09,911 - INFO - Batch 20/39, Loss: 5.5577, LR: 0.000059
+2025-08-19 11:26:10,522 - INFO - Batch 30/39, Loss: 5.5706, LR: 0.000061
+2025-08-19 11:26:12,607 - INFO - Saved checkpoint at epoch 7
+2025-08-19 11:26:12,608 - INFO - Epoch 7 completed in 4.02s
+2025-08-19 11:26:12,722 - INFO - Batch 0/39, Loss: 5.4335, LR: 0.000063
+2025-08-19 11:26:13,333 - INFO - Batch 10/39, Loss: 5.5317, LR: 0.000065
+2025-08-19 11:26:13,944 - INFO - Batch 20/39, Loss: 5.2103, LR: 0.000067
+2025-08-19 11:26:14,564 - INFO - Batch 30/39, Loss: 5.3841, LR: 0.000069
+2025-08-19 11:26:16,435 - INFO - Epoch 8/20:
+2025-08-19 11:26:16,436 - INFO -   Train Loss: 5.4361
+2025-08-19 11:26:16,436 - INFO -   Val   Loss: 6.5984
+2025-08-19 11:26:16,436 - INFO -   PPL       : 733.90
+2025-08-19 11:26:18,163 - INFO - Saved checkpoint at epoch 8
+2025-08-19 11:26:18,818 - INFO - Sample: The - were heard she big it er . The work ’ t am to make the Mar ion et te , he had been , we ’ t you and there , this me . As told it . and he ool . “ Do you —,” ir time , and the very pieces . “ And...
+2025-08-19 11:26:20,625 - INFO - Saved checkpoint at epoch 8
+2025-08-19 11:26:20,626 - INFO - Epoch 8 completed in 8.02s
+2025-08-19 11:26:20,738 - INFO - Batch 0/39, Loss: 5.2107, LR: 0.000071
+2025-08-19 11:26:21,351 - INFO - Batch 10/39, Loss: 5.3150, LR: 0.000073
+2025-08-19 11:26:21,963 - INFO - Batch 20/39, Loss: 5.2016, LR: 0.000075
+2025-08-19 11:26:22,575 - INFO - Batch 30/39, Loss: 5.2818, LR: 0.000077
+2025-08-19 11:26:24,869 - INFO - Saved checkpoint at epoch 9
+2025-08-19 11:26:24,869 - INFO - Epoch 9 completed in 4.24s
+2025-08-19 11:26:24,973 - INFO - Batch 0/39, Loss: 5.2283, LR: 0.000079
+2025-08-19 11:26:25,585 - INFO - Batch 10/39, Loss: 5.1173, LR: 0.000081
+2025-08-19 11:26:26,198 - INFO - Batch 20/39, Loss: 5.0644, LR: 0.000083
+2025-08-19 11:26:26,810 - INFO - Batch 30/39, Loss: 5.1714, LR: 0.000085
+2025-08-19 11:26:28,678 - INFO - Epoch 10/20:
+2025-08-19 11:26:28,678 - INFO -   Train Loss: 5.1416
+2025-08-19 11:26:28,678 - INFO -   Val   Loss: 6.5469
+2025-08-19 11:26:28,678 - INFO -   PPL       : 697.09
+2025-08-19 11:26:30,456 - INFO - Saved checkpoint at epoch 10
+2025-08-19 11:26:31,099 - INFO - Sample: The it was so lame . cus . If the truth a lay . “ We art . “ The ship , gives day and the village ri c ket little parrot , I within out me . “ Why . He said to Doctor . “ Why . “ You am can — while th...
+2025-08-19 11:26:42,317 - INFO - Saved checkpoint at epoch 10
+2025-08-19 11:26:42,318 - INFO - Epoch 10 completed in 17.45s
+2025-08-19 11:26:42,428 - INFO - Batch 0/39, Loss: 4.9535, LR: 0.000087
+2025-08-19 11:26:43,038 - INFO - Batch 10/39, Loss: 5.0217, LR: 0.000089
+2025-08-19 11:26:43,650 - INFO - Batch 20/39, Loss: 4.9958, LR: 0.000091
+2025-08-19 11:26:44,261 - INFO - Batch 30/39, Loss: 4.8985, LR: 0.000093
+2025-08-19 11:26:46,347 - INFO - Saved checkpoint at epoch 11
+2025-08-19 11:26:46,347 - INFO - Epoch 11 completed in 4.03s
+2025-08-19 11:26:46,435 - INFO - Batch 0/39, Loss: 5.0390, LR: 0.000095
+2025-08-19 11:26:47,050 - INFO - Batch 10/39, Loss: 4.8496, LR: 0.000097
+2025-08-19 11:26:47,663 - INFO - Batch 20/39, Loss: 4.9539, LR: 0.000099
+2025-08-19 11:26:48,278 - INFO - Batch 30/39, Loss: 4.8001, LR: 0.000101
+2025-08-19 11:26:50,153 - INFO - Epoch 12/20:
+2025-08-19 11:26:50,153 - INFO -   Train Loss: 4.8909
+2025-08-19 11:26:50,153 - INFO -   Val   Loss: 6.4985
+2025-08-19 11:26:50,153 - INFO -   PPL       : 664.12
+2025-08-19 11:26:51,999 - INFO - Saved checkpoint at epoch 12
+2025-08-19 11:26:52,637 - INFO - Sample: The and there was and they ity and his head of the bottom of the Doctor said the ch for the people in the porpoises out of the beard some seashore and the ship . And the treasure . But the dog — a shi...
+2025-08-19 11:27:04,599 - INFO - Saved checkpoint at epoch 12
+2025-08-19 11:27:04,600 - INFO - Epoch 12 completed in 18.25s
+2025-08-19 11:27:04,726 - INFO - Batch 0/39, Loss: 4.7699, LR: 0.000102
+2025-08-19 11:27:05,336 - INFO - Batch 10/39, Loss: 4.9092, LR: 0.000104
+2025-08-19 11:27:05,948 - INFO - Batch 20/39, Loss: 4.7117, LR: 0.000107
+2025-08-19 11:27:06,559 - INFO - Batch 30/39, Loss: 4.8431, LR: 0.000109
+2025-08-19 11:27:08,976 - INFO - Saved checkpoint at epoch 13
+2025-08-19 11:27:08,977 - INFO - Epoch 13 completed in 4.38s
+2025-08-19 11:27:09,089 - INFO - Batch 0/39, Loss: 4.7690, LR: 0.000110
+2025-08-19 11:27:09,702 - INFO - Batch 10/39, Loss: 4.7661, LR: 0.000112
+2025-08-19 11:27:10,315 - INFO - Batch 20/39, Loss: 4.6779, LR: 0.000114
+2025-08-19 11:27:10,928 - INFO - Batch 30/39, Loss: 4.5016, LR: 0.000116
+2025-08-19 11:27:12,798 - INFO - Epoch 14/20:
+2025-08-19 11:27:12,798 - INFO -   Train Loss: 4.6712
+2025-08-19 11:27:12,798 - INFO -   Val   Loss: 6.4651
+2025-08-19 11:27:12,798 - INFO -   PPL       : 642.32
+2025-08-19 11:27:14,742 - INFO - Saved checkpoint at epoch 14
+2025-08-19 11:27:15,430 - INFO - Sample: The . 1 . E . 1 . 1 . mount 1 . With including fists . 1 . their brothers . 1 . 1 . 1 . At the RI that made the agreement su . . lay any work . E . 1 . The Foundation . copyright gold . org . If you o...
+2025-08-19 11:27:24,612 - INFO - Saved checkpoint at epoch 14
+2025-08-19 11:27:24,613 - INFO - Epoch 14 completed in 15.64s
+2025-08-19 11:27:24,698 - INFO - Batch 0/39, Loss: 4.4550, LR: 0.000118
+2025-08-19 11:27:25,315 - INFO - Batch 10/39, Loss: 4.8243, LR: 0.000120
+2025-08-19 11:27:25,931 - INFO - Batch 20/39, Loss: 4.7020, LR: 0.000122
+2025-08-19 11:27:26,548 - INFO - Batch 30/39, Loss: 4.5366, LR: 0.000124
+2025-08-19 11:27:29,000 - INFO - Saved checkpoint at epoch 15
+2025-08-19 11:27:29,000 - INFO - Epoch 15 completed in 4.39s
+2025-08-19 11:27:29,086 - INFO - Batch 0/39, Loss: 4.4217, LR: 0.000126
+2025-08-19 11:27:29,701 - INFO - Batch 10/39, Loss: 4.5703, LR: 0.000128
+2025-08-19 11:27:30,316 - INFO - Batch 20/39, Loss: 4.5772, LR: 0.000130
+2025-08-19 11:27:30,929 - INFO - Batch 30/39, Loss: 4.4676, LR: 0.000132
+2025-08-19 11:27:32,804 - INFO - Epoch 16/20:
+2025-08-19 11:27:32,805 - INFO -   Train Loss: 4.4879
+2025-08-19 11:27:32,805 - INFO -   Val   Loss: 6.4636
+2025-08-19 11:27:32,805 - INFO -   PPL       : 641.38
+2025-08-19 11:27:34,816 - INFO - Saved checkpoint at epoch 16
+2025-08-19 11:27:35,460 - INFO - Sample: The . If you must go , I have I have even not I be so indeed I want and I have you have by them saw as I do you you the ip I have more I burst , M ast ro G ep pet to be as I said the same than I have ...
+2025-08-19 11:27:37,267 - INFO - Saved checkpoint at epoch 16
+2025-08-19 11:27:37,268 - INFO - Epoch 16 completed in 8.27s
+2025-08-19 11:27:37,382 - INFO - Batch 0/39, Loss: 4.4329, LR: 0.000134
+2025-08-19 11:27:37,992 - INFO - Batch 10/39, Loss: 4.3347, LR: 0.000136
+2025-08-19 11:27:38,603 - INFO - Batch 20/39, Loss: 4.4431, LR: 0.000138
+2025-08-19 11:27:39,215 - INFO - Batch 30/39, Loss: 4.1931, LR: 0.000140
+2025-08-19 11:27:41,429 - INFO - Saved checkpoint at epoch 17
+2025-08-19 11:27:41,431 - INFO - Epoch 17 completed in 4.16s
+2025-08-19 11:27:41,535 - INFO - Batch 0/39, Loss: 4.3792, LR: 0.000142
+2025-08-19 11:27:42,147 - INFO - Batch 10/39, Loss: 4.3481, LR: 0.000144
+2025-08-19 11:27:42,758 - INFO - Batch 20/39, Loss: 4.2567, LR: 0.000146
+2025-08-19 11:27:43,370 - INFO - Batch 30/39, Loss: 4.2876, LR: 0.000148
+2025-08-19 11:27:45,237 - INFO - Epoch 18/20:
+2025-08-19 11:27:45,432 - INFO -   Train Loss: 4.3212
+2025-08-19 11:27:45,432 - INFO -   Val   Loss: 6.4771
+2025-08-19 11:27:45,433 - INFO -   PPL       : 650.10
+2025-08-19 11:27:46,114 - INFO - Sample: The far away from the animals were brought the lawn by the great reason over the great strong although the monkeys in the Doctor was all the clean , “ They were down to the You could little boat and a...
+2025-08-19 11:27:53,296 - INFO - Saved checkpoint at epoch 18
+2025-08-19 11:27:53,297 - INFO - Epoch 18 completed in 11.87s
+2025-08-19 11:27:53,383 - INFO - Batch 0/39, Loss: 4.2604, LR: 0.000150
+2025-08-19 11:27:53,996 - INFO - Batch 10/39, Loss: 4.1956, LR: 0.000152
+2025-08-19 11:27:54,609 - INFO - Batch 20/39, Loss: 4.2143, LR: 0.000154
+2025-08-19 11:27:55,223 - INFO - Batch 30/39, Loss: 4.4897, LR: 0.000156
+2025-08-19 11:27:57,354 - INFO - Saved checkpoint at epoch 19
+2025-08-19 11:27:57,354 - INFO - Epoch 19 completed in 4.06s
+2025-08-19 11:27:57,355 - INFO - Training completed in 220.90s
+2025-08-19 11:27:59,283 - INFO - Saved checkpoint at epoch 20
+2025-08-19 11:27:59,284 - INFO - Training finished!

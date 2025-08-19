@@ -81,22 +81,14 @@ def load_model(checkpoint_path: Path, device: str = 'cpu') -> Tuple[nn.Module, T
         checkpoint = torch.load(checkpoint_path, map_location='cpu')
     print("Checkpoint loaded successfully")
 
-    # Restore tokenizer from checkpoint vocab (as in training script) 
-    training_specials = {
-        'pad_token': '<PAD>',
-        'unk_token': '<UNK>',
-        'start_token': '<START>',
-        'end_token': '<END>'
-    }
-    tokenizer = TextTokenizer(training_specials)
-
-    if 'word_to_id' in checkpoint and 'id_to_word' in checkpoint:
-        tokenizer.word_to_id = checkpoint['word_to_id']
-        tokenizer.id_to_word = {int(k): v for k, v in checkpoint['id_to_word'].items()}
-        tokenizer.vocab_size = len(tokenizer.word_to_id)
-        print(f"Vocab restored: {tokenizer.vocab_size} tokens")
-    else:
-        raise ValueError("Checkpoint lacks vocabulary (word_to_id/id_to_word)")
+    # Load the BPE tokenizer from the JSON file
+    tokenizer_path = os.path.join(os.path.dirname(checkpoint_path), 'tokenizer.json')
+    if not os.path.exists(tokenizer_path):
+        raise ValueError(f"Tokenizer file not found at {tokenizer_path}")
+    
+    from tokenizers import Tokenizer
+    tokenizer = Tokenizer.from_file(tokenizer_path)
+    print(f"Tokenizer loaded from {tokenizer_path}")
 
     # Pull model config (works with your training format) 
     cfg = checkpoint.get('config', {})
@@ -112,8 +104,8 @@ def load_model(checkpoint_path: Path, device: str = 'cpu') -> Tuple[nn.Module, T
     print(f"Creating model with params: {model_params}")
 
     model = Transformer(
-        src_vocab_size=tokenizer.vocab_size,
-        tgt_vocab_size=tokenizer.vocab_size,
+        src_vocab_size=tokenizer.get_vocab_size(),
+        tgt_vocab_size=tokenizer.get_vocab_size(),
         d_model=model_params['d_model'],
         num_heads=model_params['num_heads'],
         num_layers=model_params['num_layers'],
@@ -173,10 +165,6 @@ def try_forward(model: nn.Module, input_ids: torch.Tensor) -> torch.Tensor:
         return model(input_ids, input_ids, mask)
 
 
-def find_token_id(tokenizer: TextTokenizer, token_str: str) -> Optional[int]:
-    return tokenizer.word_to_id.get(token_str, None)
-
-
 # -----------------------------
 # Tiny safe calculator tool
 # -----------------------------
@@ -224,9 +212,9 @@ def generate_once(
     """
     One sampled continuation with optional tool-use turn taking: CALC[ ... ]
     """
-    # bootstrap with START if available
-    start_id = find_token_id(tokenizer, tokenizer.special_tokens['start_token'])
-    end_id = find_token_id(tokenizer, tokenizer.special_tokens['end_token'])
+    # Get special token IDs from the tokenizer
+    start_id = tokenizer.token_to_id("<START>")
+    end_id = tokenizer.token_to_id("<END>")
 
     # Structured prompt to encourage reasoning
     base_prompt = prompt
@@ -234,7 +222,7 @@ def generate_once(
     # Tool-use loop: if model writes CALC[expr], we evaluate and append the result.
     # We interleave generation chunks to allow tool calls mid-stream.
     text_context = base_prompt
-    token_ids = tokenizer.encode(text_context)
+    token_ids = tokenizer.encode(text_context).ids
     if start_id is not None and (len(token_ids) == 0 or token_ids[0] != start_id):
         token_ids = [start_id] + token_ids
 
@@ -252,7 +240,7 @@ def generate_once(
 
         # After each full decode step, check if the latest text contains a CALC[...] tool call.
         if tool_use:
-            decoded = tokenizer.decode(input_ids[0].tolist())
+            decoded = tokenizer.decode(input_ids[0].tolist(), skip_special_tokens=True)
             # robustly find the last unmatched CALC[ ... ]
             m = list(re.finditer(r"CALC\[(.*?)\]", decoded, flags=re.DOTALL))
             if m:
@@ -261,13 +249,13 @@ def generate_once(
                 result = safe_calc(expr)
                 # We append a compact result token sequence
                 append_text = f"\nResult: {result}\n"
-                append_ids = tokenizer.encode(append_text)
+                append_ids = tokenizer.encode(append_text).ids
                 input_ids = torch.cat([input_ids, torch.tensor([append_ids], device=device)], dim=1)
 
         if input_ids.size(1) >= max_tokens:
             break
 
-    return tokenizer.decode(input_ids[0].tolist())
+    return tokenizer.decode(input_ids[0].tolist(), skip_special_tokens=True)
 
 
 # -----------------------------
@@ -340,10 +328,10 @@ def beam_search(
     """
     Log-likelihood beam search (no CoT), kept simple for clarity.
     """
-    start_id = find_token_id(tokenizer, tokenizer.special_tokens['start_token'])
-    end_id = find_token_id(tokenizer, tokenizer.special_tokens['end_token'])
+    start_id = tokenizer.token_to_id("<START>")
+    end_id = tokenizer.token_to_id("<END>")
 
-    init_ids = tokenizer.encode(prompt)
+    init_ids = tokenizer.encode(prompt).ids
     if start_id is not None and (len(init_ids) == 0 or init_ids[0] != start_id):
         init_ids = [start_id] + init_ids
 
@@ -373,7 +361,7 @@ def beam_search(
             break
 
     best_ids, _ = max(beams, key=lambda x: x[1])
-    return tokenizer.decode(best_ids[0].tolist())
+    return tokenizer.decode(best_ids[0].tolist(), skip_special_tokens=True)
 
 
 # -----------------------------
@@ -402,7 +390,7 @@ if __name__ == "__main__":
             if mode == "1":
                 text = generate_once(
                     model, tokenizer, cot_prompt(prompt), device=device,
-                    max_tokens=256, temperature=0.9, top_k=50, top_p=0.9, tool_use=True
+                    max_tokens=256, temperature=1.1, top_k=100, top_p=0.9, tool_use=True
                 )
                 print("\n--- Generation (CoT) ---\n")
                 print(text)
@@ -410,7 +398,7 @@ if __name__ == "__main__":
             elif mode == "2":
                 best, gens, tally = self_consistency(
                     model, tokenizer, prompt, device=device,
-                    samples=8, max_tokens=256, temperature=1.0, top_k=50, top_p=0.9
+                    samples=24, max_tokens=360, temperature=1.0, top_k=50, top_p=0.9
                 )
                 print("\n--- Voted Answer ---\n")
                 print(best)

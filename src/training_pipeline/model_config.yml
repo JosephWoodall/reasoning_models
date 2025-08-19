@@ -33,13 +33,13 @@ model:
   d_model: 384
   
   # Number of attention heads in multi-head attention
-  num_heads: 6
+  num_heads: 8
 
   # Number of encoder and decoder layers
   num_layers: 6
 
   # Feed-forward network hidden dimension (typically 4x d_model)
-  d_ff: 1536
+  d_ff: 2048
 
   # Maximum sequence length the model can handle
   max_len: 2048
