@@ -20,7 +20,7 @@ from typing import Dict, List, Tuple, Optional
 import time
 import math
 import random
-import numpy as np
+import numpy
 from collections import Counter
 import re
 
@@ -34,7 +34,7 @@ from model.model import Transformer
 def set_seed(seed: int = 42):
     """Set random seeds for reproducibility."""
     random.seed(seed)
-    np.random.seed(seed)
+    numpy.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
@@ -118,10 +118,10 @@ class TextDataset(Dataset):
 
     def __getitem__(self, idx):
         sequence = self.sequences[idx]
-        # For language modeling: input is sequence[:-1], target is sequence[1:]
-        input_ids = torch.tensor(sequence[:-1], dtype=torch.long)
+        # For language modeling: inumpyut is sequence[:-1], target is sequence[1:]
+        inumpyut_ids = torch.tensor(sequence[:-1], dtype=torch.long)
         target_ids = torch.tensor(sequence[1:], dtype=torch.long)
-        return input_ids, target_ids
+        return inumpyut_ids, target_ids
 
 
 class WarmupLRScheduler:
@@ -381,12 +381,12 @@ def generate_sample(model: nn.Module, tokenizer: TextTokenizer,
     # Generate tokens
     with torch.no_grad():
         for _ in range(gen_config['max_length']):
-            # Prepare input
-            input_tensor = torch.tensor(
+            # Prepare inumpyut
+            inumpyut_tensor = torch.tensor(
                 [token_ids], dtype=torch.long).to(device)
 
             # Get model output
-            output = model(input_tensor)
+            output = model(inumpyut_tensor)
             logits = output[0, -1, :]  # Last token's logits
 
             # Apply temperature
@@ -412,13 +412,13 @@ def train_epoch(model: nn.Module, dataloader: DataLoader, optimizer,
     total_loss = 0
     num_batches = len(dataloader)
 
-    for batch_idx, (input_ids, target_ids) in enumerate(dataloader):
-        input_ids = input_ids.to(device)
+    for batch_idx, (inumpyut_ids, target_ids) in enumerate(dataloader):
+        inumpyut_ids = inumpyut_ids.to(device)
         target_ids = target_ids.to(device)
 
         # Forward pass
         optimizer.zero_grad()
-        output = model(input_ids)
+        output = model(inumpyut_ids)
 
         # Calculate loss
         loss = criterion(output.view(-1, output.size(-1)), target_ids.view(-1))
@@ -452,11 +452,11 @@ def evaluate(model: nn.Module, dataloader: DataLoader, criterion,
     total_loss = 0
 
     with torch.no_grad():
-        for input_ids, target_ids in dataloader:
-            input_ids = input_ids.to(device)
+        for inumpyut_ids, target_ids in dataloader:
+            inumpyut_ids = inumpyut_ids.to(device)
             target_ids = target_ids.to(device)
 
-            output = model(input_ids)
+            output = model(inumpyut_ids)
             loss = criterion(output.view(-1, output.size(-1)),
                              target_ids.view(-1))
             total_loss += loss.item()

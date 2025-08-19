@@ -5,16 +5,16 @@ url_pattern: "https://www.gutenberg.org/cache/epub/{id}/pg{id}.txt"
 
 # Range of book IDs to download
 book_ids:
-  start: 200
-  end: 300  # Adjust this range as needed
+  start: 500
+  end: 501  
 
 # Download settings
 download:
   force_refresh: false  # Set to true to re-download existing files
   max_retries: 3
   timeout: 30
-  delay_between_requests: 1  # Seconds to wait between requests to be polite
-
+  delay_between_requests: 1  
+  
 # Cache settings
 cache:
   directory: "text_cache"

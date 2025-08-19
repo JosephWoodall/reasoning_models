@@ -63,7 +63,7 @@ class TextTokenizer:
         return ' '.join(words)
 
 
-def load_model(checkpoint_path, device='cuda' if torch.cuda.is_available() else 'cpu'):
+def load_model(checkpoint_path, device='cpu'):
     """
     Load the trained transformer model from a checkpoint.
 
@@ -77,7 +77,12 @@ def load_model(checkpoint_path, device='cuda' if torch.cuda.is_available() else 
     """
     # Load the checkpoint
     print(f"Loading checkpoint from {checkpoint_path}...")
-    checkpoint = torch.load(checkpoint_path, map_location=device)
+    try:
+        # Try loading with pickle_module specification
+        checkpoint = torch.load(checkpoint_path, map_location=device, pickle_module=torch.serialization.pickle)
+    except:
+        # Fallback to default loading
+        checkpoint = torch.load(checkpoint_path, map_location='cpu')
     print("Checkpoint loaded successfully")
 
     # Initialize tokenizer with special tokens (using the same as in training)
@@ -196,26 +201,33 @@ def generate_text(model, tokenizer, prompt, max_length=100, temperature=0.7):
 
 if __name__ == "__main__":
     # Example usage
-    checkpoint_path = Path("output/checkpoints/transformer_lm_latest.pt")
+    checkpoint_path = Path("/home/joseph_woodall/workspace/reasoning_models/output/checkpoints/transformer_lm_latest.pt")
 
-    # Force CPU usage due to CUDA compatibility issues
+        # Force CPU usage as per training configuration
     device = 'cpu'
-    torch.cuda.is_available = lambda: False  # Prevent CUDA usage
 
     try:
         # Load the model and tokenizer
+        print("="*50)
         print("Loading model from checkpoint...")
         model, tokenizer = load_model(checkpoint_path, device)
-
-        # Example prompt
-        prompt = "Once upon a time"
+        print(model)
+        print(tokenizer)
+        print("="*50)
+        
+        
+        print("="*50)
+        print("Please enter a prompt:")
+        prompt = input()
         print(f"\nGenerating text from prompt: '{prompt}'")
-
+        print("="*50)
         # Generate text
         generated_text = generate_text(
             model, tokenizer, prompt, max_length=100, temperature=0.7)
+        print("\n")
+        print("="*50)
         print(f"\nGenerated text:\n{generated_text}")
-
+        print("="*50)
     except Exception as e:
         print(f"Error: {str(e)}")
         # Print full traceback for debugging
