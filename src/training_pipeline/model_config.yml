@@ -48,8 +48,8 @@ model:
   dropout: 0.2
   
   # Vocabulary size (will be determined from data)
-  src_vocab_size: 10000
-  tgt_vocab_size: 10000
+  src_vocab_size: 32000
+  tgt_vocab_size: 32000
 
 # Training Parameters
 training:

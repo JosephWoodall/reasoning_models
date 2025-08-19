@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """
-Transformer Model Training Script
+Transformer Model Training Script (BPE tokenizer edition)
 
-This script trains a transformer model on text data from the text_cache directory.
-It loads configuration from model_config.yml and implements a complete training pipeline.
+Key changes vs your original:
+- Replaces custom word-level tokenizer with a trained BPE tokenizer (Hugging Face `tokenizers`).
+- Removes <UNK>-heavy behavior; no padding is used since sequences are fixed-length.
+- Saves/loads the tokenizer JSON next to checkpoints.
 """
 
 import os
@@ -21,7 +23,6 @@ import time
 import math
 import random
 import numpy
-from collections import Counter
 import re
 
 # Add src directory to path to import model
@@ -31,85 +32,80 @@ sys.path.insert(0, src_dir)
 # Now we can import the model
 from model.model import Transformer
 
+# ------------- Utils -------------
 def set_seed(seed: int = 42):
-    """Set random seeds for reproducibility."""
     random.seed(seed)
     numpy.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
+# ------------- BPE Tokenizer -------------
+# We keep this self-contained in this file so you can drop it in and run
+from tokenizers import Tokenizer, models, trainers, pre_tokenizers
+from tokenizers.processors import BertProcessing
 
-class TextTokenizer:
-    """Simple word-level tokenizer for text data."""
+SPECIAL_TOKENS = ["<PAD>", "<UNK>", "<START>", "<END>"]
 
-    def __init__(self, special_tokens: Dict[str, str]):
-        self.special_tokens = special_tokens
-        self.word_to_id = {}
-        self.id_to_word = {}
-        self.vocab_size = 0
+def train_bpe_tokenizer(
+    texts: List[str],
+    vocab_size: int = 32000,
+    save_path: str = "tokenizer.json",
+) -> Tokenizer:
+    """
+    Train a Byte-Pair Encoding tokenizer from raw texts and save it to JSON.
+    """
+    tokenizer = Tokenizer(models.BPE(unk_token="<UNK>"))
+    # Whitespace pre-tokenizer is fine for English-like corpora; you can swap for ByteLevel if desired.
+    tokenizer.pre_tokenizer = pre_tokenizers.Whitespace()
 
-    def build_vocab(self, texts: List[str], max_vocab_size: int = 10000):
-        """Build vocabulary from text data."""
-        print("Building vocabulary...")
+    trainer = trainers.BpeTrainer(
+        vocab_size=vocab_size,
+        special_tokens=SPECIAL_TOKENS
+    )
 
-        # Add special tokens first
-        for token in self.special_tokens.values():
-            self.word_to_id[token] = len(self.word_to_id)
-            self.id_to_word[len(self.id_to_word)] = token
+    # Train directly from the iterator of texts (no temp files needed)
+    tokenizer.train_from_iterator(texts, trainer=trainer)
 
-        # Count word frequencies
-        word_counts = Counter()
-        for text in texts:
-            # Simple tokenization: split on whitespace and punctuation
-            words = re.findall(r'\b\w+\b|[^\w\s]', text.lower())
-            word_counts.update(words)
+    # Post-processor: wrap sequences with <START> ... <END>
+    # (Not strictly required for LM, but useful for generation)
+    start_id = tokenizer.token_to_id("<START>")
+    end_id = tokenizer.token_to_id("<END>")
+    tokenizer.post_processor = BertProcessing(
+        ("<END>", end_id),
+        ("<START>", start_id),
+    )
 
-        # Add most frequent words to vocabulary
-        most_common = word_counts.most_common(
-            max_vocab_size - len(self.special_tokens))
-        for word, _ in most_common:
-            if word not in self.word_to_id:
-                self.word_to_id[word] = len(self.word_to_id)
-                self.id_to_word[len(self.id_to_word)] = word
+    tokenizer.save(save_path)
+    return tokenizer
 
-        self.vocab_size = len(self.word_to_id)
-        print(f"Vocabulary size: {self.vocab_size}")
-
-    def encode(self, text: str) -> List[int]:
-        """Convert text to token IDs."""
-        words = re.findall(r'\b\w+\b|[^\w\s]', text.lower())
-        unk_id = self.word_to_id[self.special_tokens['unk_token']]
-        return [self.word_to_id.get(word, unk_id) for word in words]
-
-    def decode(self, token_ids: List[int]) -> str:
-        """Convert token IDs back to text."""
-        words = [self.id_to_word.get(token_id, self.special_tokens['unk_token'])
-                 for token_id in token_ids]
-        return ' '.join(words)
-
-
+# ------------- Dataset -------------
 class TextDataset(Dataset):
-    """Dataset class for text data."""
+    """
+    Dataset that:
+      - Encodes each raw text with the BPE tokenizer
+      - Slices into fixed-length sequences with 50% overlap (no padding)
+      - Returns (input_ids, target_ids) shifted by one for LM
+    """
 
-    def __init__(self, texts: List[str], tokenizer: TextTokenizer,
-                 sequence_length: int, special_tokens: Dict[str, str]):
+    def __init__(self, texts: List[str], tokenizer: Tokenizer, sequence_length: int):
         self.tokenizer = tokenizer
         self.sequence_length = sequence_length
-        self.special_tokens = special_tokens
-
-        # Tokenize all texts and create sequences
         self.sequences = []
-        pad_id = tokenizer.word_to_id[special_tokens['pad_token']]
 
-        print("Creating training sequences...")
+        print("Encoding texts and creating sequences...")
         for text in texts:
-            token_ids = tokenizer.encode(text)
+            # encode returns an Encoding; .ids are token ids
+            token_ids = tokenizer.encode(text).ids
 
-            # Create overlapping sequences
-            for i in range(0, len(token_ids) - sequence_length + 1, sequence_length // 2):
-                sequence = token_ids[i:i + sequence_length]
-                if len(sequence) == sequence_length:
-                    self.sequences.append(sequence)
+            # Optional: ensure we always see start/end wrappers at text level
+            # (The post-processor does this only when calling tokenizer.encode,
+            #  which we already do above.)
+            # Now slice into overlapping fixed-length chunks
+            step = max(1, sequence_length // 2)
+            for i in range(0, len(token_ids) - sequence_length, step):
+                seq = token_ids[i:i + sequence_length]
+                if len(seq) == sequence_length:
+                    self.sequences.append(seq)
 
         print(f"Created {len(self.sequences)} training sequences")
 
@@ -117,16 +113,14 @@ class TextDataset(Dataset):
         return len(self.sequences)
 
     def __getitem__(self, idx):
-        sequence = self.sequences[idx]
-        # For language modeling: inumpyut is sequence[:-1], target is sequence[1:]
-        inumpyut_ids = torch.tensor(sequence[:-1], dtype=torch.long)
-        target_ids = torch.tensor(sequence[1:], dtype=torch.long)
-        return inumpyut_ids, target_ids
+        seq = self.sequences[idx]
+        input_ids = torch.tensor(seq[:-1], dtype=torch.long)
+        target_ids = torch.tensor(seq[1:], dtype=torch.long)
+        return input_ids, target_ids
 
-
+# ------------- Scheduler -------------
 class WarmupLRScheduler:
-    """Learning rate scheduler with warmup."""
-
+    """Learning rate scheduler with warmup (Transformer-style)."""
     def __init__(self, optimizer, d_model: int, warmup_steps: int):
         self.optimizer = optimizer
         self.d_model = d_model
@@ -142,55 +136,55 @@ class WarmupLRScheduler:
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = lr
 
-
+# ------------- Config / IO -------------
 def load_config(config_path: Optional[str] = None) -> Dict:
-    """Load configuration. If YAML file exists, try to load it, otherwise use default config."""
-
-    # Default configuration
+    """Load YAML config; falls back to default if not found."""
     default_config = {
         'model': {
-            'd_model': 128,     # Smaller model for testing
-            'num_heads': 4,     # Fewer heads
-            'num_layers': 2,    # Fewer layers
-            'd_ff': 512,        # Smaller feed-forward
+            'd_model': 128,
+            'num_heads': 4,
+            'num_layers': 2,
+            'd_ff': 512,
             'max_len': 1024,
             'dropout': 0.1,
-            'src_vocab_size': 5000,  # Smaller vocab
-            'tgt_vocab_size': 5000
+            'src_vocab_size': 32000,
+            'tgt_vocab_size': 32000
         },
         'training': {
-            'batch_size': 4,    # Much smaller batch for CPU
-            'epochs': 5,        # Fewer epochs for testing
-            'learning_rate': 0.001,  # Higher learning rate
+            'batch_size': 4,
+            'epochs': 5,
+            'learning_rate': 0.001,
             'scheduler': {
                 'type': 'warmup',
-                'warmup_steps': 100,  # Fewer warmup steps
+                'warmup_steps': 100,
                 'step_factor': 0.5,
                 'step_size': 10
             },
             'grad_clip': 1.0,
             'weight_decay': 0.01,
-            'save_frequency': 2,    # Save more frequently
-            'log_frequency': 10     # Log more frequently
+            'save_frequency': 2,
+            'log_frequency': 10
         },
         'data': {
             'cache_dir': 'text_cache',
-            'sequence_length': 128,  # Shorter sequences for faster training
+            'sequence_length': 128,
             'min_text_length': 1000,
             'train_split': 0.9,
             'max_files': None,
-            'special_tokens': {
+            'special_tokens': {  # kept for completeness; BPE uses SPECIAL_TOKENS above
                 'pad_token': '<PAD>',
                 'unk_token': '<UNK>',
                 'start_token': '<START>',
                 'end_token': '<END>'
-            }
+            },
+            'load_batch_size': 1000
         },
         'output': {
             'checkpoint_dir': 'output/checkpoints',
             'log_dir': 'output/logs',
             'samples_dir': 'output/samples',
-            'model_name': 'transformer_lm'
+            'model_name': 'transformer_lm',
+            'tokenizer_path': 'output/checkpoints/tokenizer.json'
         },
         'generation': {
             'max_length': 200,
@@ -200,9 +194,9 @@ def load_config(config_path: Optional[str] = None) -> Dict:
             'num_samples': 5
         },
         'hardware': {
-            'device': 'auto',  # Use CPU to avoid CUDA compatibility issues
-            'num_workers': 2,   # Reduced for CPU
-            'pin_memory': False  # No point with CPU
+            'device': 'auto',
+            'num_workers': 2,
+            'pin_memory': False
         },
         'evaluation': {
             'eval_frequency': 5,
@@ -211,13 +205,11 @@ def load_config(config_path: Optional[str] = None) -> Dict:
         }
     }
 
-    # Try to load YAML config if file exists
     if config_path and os.path.exists(config_path):
         try:
             import yaml
             with open(config_path, 'r') as f:
                 file_config = yaml.safe_load(f)
-            # Update default config with file config
 
             def update_config(default, update):
                 for key, value in update.items():
@@ -225,30 +217,23 @@ def load_config(config_path: Optional[str] = None) -> Dict:
                         update_config(default[key], value)
                     else:
                         default[key] = value
+
             update_config(default_config, file_config)
-        except ImportError:
-            print("PyYAML not available, using default configuration")
         except Exception as e:
-            print(
-                f"Error loading config file: {e}, using default configuration")
+            print(f"Error loading config file: {e}, using default configuration")
 
     return default_config
 
-
 def load_text_data(cache_dir: str, max_files: Optional[int] = None,
                    min_length: int = 1000, batch_size: int = 1000) -> List[str]:
-    """Load text data from cache directory with batching and multiprocessing."""
     logging.info(f"Loading text data from {cache_dir}...")
-
     texts = []
     cache_path = Path(cache_dir)
-
     if not cache_path.exists():
         raise ValueError(f"Cache directory {cache_dir} does not exist")
 
-    # Get all text files and optionally limit them
     text_files = list(cache_path.glob("*.txt"))
-    random.shuffle(text_files)  # Shuffle files for better training
+    random.shuffle(text_files)
     if max_files:
         text_files = text_files[:max_files]
 
@@ -256,11 +241,9 @@ def load_text_data(cache_dir: str, max_files: Optional[int] = None,
     processed_files = 0
     total_chars = 0
 
-    # Process files in batches to manage memory
     for i in range(0, len(text_files), batch_size):
         batch_files = text_files[i:i + batch_size]
         batch_texts = []
-
         for file_path in batch_files:
             try:
                 with open(file_path, 'r', encoding='utf-8') as f:
@@ -269,77 +252,64 @@ def load_text_data(cache_dir: str, max_files: Optional[int] = None,
                         batch_texts.append(text)
                         total_chars += len(text)
                 processed_files += 1
-                
-                # Log progress every 1000 files or at the end
                 if processed_files % 1000 == 0 or processed_files == total_files:
-                    logging.info(f"Progress: {processed_files}/{total_files} files "
-                               f"({(processed_files/total_files)*100:.1f}%)")
+                    logging.info(
+                        f"Progress: {processed_files}/{total_files} files "
+                        f"({(processed_files/total_files)*100:.1f}%)"
+                    )
             except Exception as e:
                 logging.error(f"Error loading {file_path}: {e}")
-
         texts.extend(batch_texts)
-        # Log batch completion
-        logging.info(f"Loaded batch of {len(batch_texts)} texts "
-                    f"(Total: {len(texts)} texts, {total_chars/1_000_000:.1f}M chars)")
+        logging.info(
+            f"Loaded batch of {len(batch_texts)} texts "
+            f"(Total: {len(texts)} texts, {total_chars/1_000_000:.1f}M chars)"
+        )
 
-    logging.info(f"Completed loading {len(texts)} text files "
-                f"({total_chars/1_000_000:.1f}M characters)")
+    logging.info(
+        f"Completed loading {len(texts)} text files "
+        f"({total_chars/1_000_000:.1f}M characters)"
+    )
     return texts
 
-
 def create_model(config: Dict, vocab_size: int) -> Transformer:
-    """Create transformer model from configuration."""
-    model_config = config['model']
-
+    m = config['model']
     model = Transformer(
         src_vocab_size=vocab_size,
         tgt_vocab_size=vocab_size,
-        d_model=model_config['d_model'],
-        num_heads=model_config['num_heads'],
-        num_layers=model_config['num_layers'],
-        d_ff=model_config['d_ff'],
-        max_len=model_config['max_len'],
-        dropout=model_config['dropout']
+        d_model=m['d_model'],
+        num_heads=m['num_heads'],
+        num_layers=m['num_layers'],
+        d_ff=m['d_ff'],
+        max_len=m['max_len'],
+        dropout=m['dropout']
     )
-
     return model
 
-
 def setup_directories(config: Dict):
-    """Create necessary output directories."""
     project_root = os.path.join(os.path.dirname(__file__), '..', '..')
     for key in ['checkpoint_dir', 'log_dir', 'samples_dir']:
         directory = os.path.join(project_root, config['output'][key])
         os.makedirs(directory, exist_ok=True)
 
-
 def setup_logging(config: Dict):
-    """Setup logging configuration."""
     project_root = os.path.join(os.path.dirname(__file__), '..', '..')
     log_dir = os.path.join(project_root, config['output']['log_dir'])
     log_file = os.path.join(log_dir, 'training.log')
-    
-    # Clear existing log file
+
     os.makedirs(os.path.dirname(log_file), exist_ok=True)
     with open(log_file, 'w') as f:
-        f.write('')  # Clear the file
-    
+        f.write('')
+
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.FileHandler(log_file),
-            logging.StreamHandler()
-        ]
+        handlers=[logging.FileHandler(log_file), logging.StreamHandler()]
     )
 
-
 def save_checkpoint(model: nn.Module, optimizer, scheduler, epoch: int,
-                    loss: float, config: Dict, tokenizer: TextTokenizer):
-    """Save model checkpoint."""
+                    loss: float, config: Dict, tokenizer_path: str):
     project_root = os.path.join(os.path.dirname(__file__), '..', '..')
-    checkpoint_dir = os.path.join(
-        project_root, config['output']['checkpoint_dir'])
+    checkpoint_dir = os.path.join(project_root, config['output']['checkpoint_dir'])
     model_name = config['output']['model_name']
 
     checkpoint = {
@@ -348,191 +318,161 @@ def save_checkpoint(model: nn.Module, optimizer, scheduler, epoch: int,
         'optimizer_state_dict': optimizer.state_dict(),
         'loss': loss,
         'config': config,
-        'vocab_size': tokenizer.vocab_size,
-        'word_to_id': tokenizer.word_to_id,
-        'id_to_word': tokenizer.id_to_word
+        'tokenizer_path': tokenizer_path,
     }
 
-    # Save latest checkpoint
-    torch.save(checkpoint, os.path.join(
-        checkpoint_dir, f'{model_name}_latest.pt'))
-
-    # Save epoch-specific checkpoint
-    torch.save(checkpoint, os.path.join(
-        checkpoint_dir, f'{model_name}_epoch_{epoch}.pt'))
-
+    torch.save(checkpoint, os.path.join(checkpoint_dir, f'{model_name}_latest.pt'))
+    torch.save(checkpoint, os.path.join(checkpoint_dir, f'{model_name}_epoch_{epoch}.pt'))
     logging.info(f"Saved checkpoint at epoch {epoch}")
 
+# ------------- Generation -------------
+def sample_next_token(logits: torch.Tensor, temperature: float) -> int:
+    logits = logits / max(temperature, 1e-6)
+    probs = torch.softmax(logits, dim=-1)
+    next_token = torch.multinomial(probs, 1).item()
+    return int(next_token)
 
-def generate_sample(model: nn.Module, tokenizer: TextTokenizer,
+def generate_sample(model: nn.Module, tokenizer: Tokenizer,
                     device: torch.device, config: Dict, prompt: str = "") -> str:
-    """Generate a text sample from the model."""
     model.eval()
-    gen_config = config['generation']
+    gen = config['generation']
+    max_len = gen['max_length']
+    temperature = gen['temperature']
 
-    # Encode prompt
+    # Encode prompt (post-processor will add <START>/<END>)
     if prompt:
-        token_ids = tokenizer.encode(prompt)
+        token_ids = tokenizer.encode(prompt).ids
     else:
-        start_id = tokenizer.word_to_id[config['data']
-                                        ['special_tokens']['start_token']]
-        token_ids = [start_id]
+        token_ids = [tokenizer.token_to_id("<START>")]
 
-    # Generate tokens
     with torch.no_grad():
-        for _ in range(gen_config['max_length']):
-            # Prepare inumpyut
-            inumpyut_tensor = torch.tensor(
-                [token_ids], dtype=torch.long).to(device)
+        for _ in range(max_len):
+            inp = torch.tensor([token_ids], dtype=torch.long, device=device)
+            output = model(inp)
+            logits = output[0, -1, :]
+            next_token = sample_next_token(logits, temperature)
+            token_ids.append(next_token)
 
-            # Get model output
-            output = model(inumpyut_tensor)
-            logits = output[0, -1, :]  # Last token's logits
-
-            # Apply temperature
-            logits = logits / gen_config['temperature']
-
-            # Sample next token
-            probs = torch.softmax(logits, dim=-1)
-            next_token = torch.multinomial(probs, 1).item()
-
-            token_ids.append(int(next_token))
-
-            # Check for end token
-            if next_token == tokenizer.word_to_id[config['data']['special_tokens']['end_token']]:
+            # Stop if we see <END>
+            if next_token == tokenizer.token_to_id("<END>"):
                 break
 
+    # Remove the leading <START> if present before decoding
+    start_id = tokenizer.token_to_id("<START>")
+    if len(token_ids) > 0 and token_ids[0] == start_id:
+        token_ids = token_ids[1:]
     return tokenizer.decode(token_ids)
 
-
+# ------------- Train/Eval -------------
 def train_epoch(model: nn.Module, dataloader: DataLoader, optimizer,
                 scheduler, criterion, device: torch.device, config: Dict) -> float:
-    """Train model for one epoch."""
     model.train()
-    total_loss = 0
+    total_loss = 0.0
     num_batches = len(dataloader)
 
-    for batch_idx, (inumpyut_ids, target_ids) in enumerate(dataloader):
-        inumpyut_ids = inumpyut_ids.to(device)
+    for batch_idx, (input_ids, target_ids) in enumerate(dataloader):
+        input_ids = input_ids.to(device)
         target_ids = target_ids.to(device)
 
-        # Forward pass
         optimizer.zero_grad()
-        output = model(inumpyut_ids)
-
-        # Calculate loss
+        output = model(input_ids)  # (B, T-1, V)
         loss = criterion(output.view(-1, output.size(-1)), target_ids.view(-1))
-
-        # Backward pass
         loss.backward()
 
-        # Gradient clipping
         clip_grad_norm_(model.parameters(), config['training']['grad_clip'])
-
-        # Update parameters
         optimizer.step()
         if scheduler:
             scheduler.step()
 
         total_loss += loss.item()
-
-        # Log progress
         if batch_idx % config['training']['log_frequency'] == 0:
             current_lr = optimizer.param_groups[0]['lr']
-            logging.info(
-                f'Batch {batch_idx}/{num_batches}, Loss: {loss.item():.4f}, LR: {current_lr:.6f}')
+            logging.info(f'Batch {batch_idx}/{num_batches}, Loss: {loss.item():.4f}, LR: {current_lr:.6f}')
 
-    return total_loss / num_batches
-
+    return total_loss / max(1, num_batches)
 
 def evaluate(model: nn.Module, dataloader: DataLoader, criterion,
              device: torch.device) -> float:
-    """Evaluate model on validation data."""
     model.eval()
-    total_loss = 0
-
+    total_loss = 0.0
     with torch.no_grad():
-        for inumpyut_ids, target_ids in dataloader:
-            inumpyut_ids = inumpyut_ids.to(device)
+        for input_ids, target_ids in dataloader:
+            input_ids = input_ids.to(device)
             target_ids = target_ids.to(device)
-
-            output = model(inumpyut_ids)
-            loss = criterion(output.view(-1, output.size(-1)),
-                             target_ids.view(-1))
+            output = model(input_ids)
+            loss = criterion(output.view(-1, output.size(-1)), target_ids.view(-1))
             total_loss += loss.item()
+    return total_loss / max(1, len(dataloader))
 
-    return total_loss / len(dataloader)
-
-
+# ------------- Main -------------
 def main():
-    """Main training function."""
-    # Load configuration from the same directory as this script
-    # config_path = os.path.join(os.path.dirname(__file__), 'model_config.yml')
+    # Use your existing external config path
     config_path = "/home/joseph_woodall/workspace/reasoning_models/src/training_pipeline/model_config.yml"
     config = load_config(config_path)
 
-    # Set random seed
     set_seed(42)
-
-    # Setup directories and logging
     setup_directories(config)
     setup_logging(config)
 
-    logging.info("Starting transformer training...")
+    logging.info("Starting transformer training (BPE tokenizer)...")
     logging.info(f"Configuration: {json.dumps(config, indent=2)}")
 
-    # Determine device
+    # Device
     if config['hardware']['device'] == 'auto':
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     else:
         device = torch.device(config['hardware']['device'])
-
     logging.info(f"Using device: {device}")
 
-    # Load text data (adjust path to be relative to project root)
-    cache_dir = os.path.join(os.path.dirname(
-        __file__), '..', '..', config['data']['cache_dir'])
-    
-    # Get batch size from config or use default
-    batch_size = config['data'].get('load_batch_size', 1000)
-    
+    # Data path
+    cache_dir = os.path.join(os.path.dirname(__file__), '..', '..', config['data']['cache_dir'])
+    batch_size_for_loading = config['data'].get('load_batch_size', 1000)
+
     texts = load_text_data(
         cache_dir,
         config['data']['max_files'],
         config['data']['min_text_length'],
-        batch_size=batch_size
+        batch_size=batch_size_for_loading
     )
-
     if not texts:
         raise ValueError("No text data found!")
 
     # Split data
     split_idx = int(len(texts) * config['data']['train_split'])
-    # Ensure we have at least one text for training
-    if split_idx == 0:
-        split_idx = 1
+    split_idx = max(1, split_idx)  # ensure at least one training text
     train_texts = texts[:split_idx]
-    val_texts = texts[split_idx:] if split_idx < len(
-        texts) else [texts[-1]]  # Use last text for validation if no split
+    val_texts = texts[split_idx:] if split_idx < len(texts) else [texts[-1]]
 
-    logging.info(
-        f"Train texts: {len(train_texts)}, Validation texts: {len(val_texts)}")
+    logging.info(f"Train texts: {len(train_texts)}, Validation texts: {len(val_texts)}")
 
-    # Create tokenizer and build vocabulary
-    tokenizer = TextTokenizer(config['data']['special_tokens'])
-    tokenizer.build_vocab(train_texts, config['model']['src_vocab_size'])
+    # Tokenizer: train or load
+    project_root = os.path.join(os.path.dirname(__file__), '..', '..')
+    tokenizer_path = os.path.join(project_root, config['output'].get('tokenizer_path', 'output/checkpoints/tokenizer.json'))
+    os.makedirs(os.path.dirname(tokenizer_path), exist_ok=True)
 
-    # Create datasets
-    train_dataset = TextDataset(
-        train_texts, tokenizer, config['data']['sequence_length'],
-        config['data']['special_tokens']
-    )
-    val_dataset = TextDataset(
-        val_texts, tokenizer, config['data']['sequence_length'],
-        config['data']['special_tokens']
-    )
+    if not os.path.exists(tokenizer_path):
+        logging.info(f"Training BPE tokenizer (vocab={config['model']['src_vocab_size']})...")
+        tokenizer = train_bpe_tokenizer(
+            train_texts,
+            vocab_size=config['model']['src_vocab_size'],
+            save_path=tokenizer_path
+        )
+        logging.info(f"Tokenizer trained and saved to {tokenizer_path}")
+    else:
+        logging.info(f"Loading existing tokenizer from {tokenizer_path}")
+        tokenizer = Tokenizer.from_file(tokenizer_path)
 
-    # Create data loaders
+    vocab_size = tokenizer.get_vocab_size()
+    # Mirror to tgt vocab (shared LM head)
+    config['model']['src_vocab_size'] = vocab_size
+    config['model']['tgt_vocab_size'] = vocab_size
+
+    # Datasets
+    seq_len = config['data']['sequence_length']
+    train_dataset = TextDataset(train_texts, tokenizer, seq_len)
+    val_dataset = TextDataset(val_texts, tokenizer, seq_len)
+
+    # DataLoaders
     train_loader = DataLoader(
         train_dataset,
         batch_size=config['training']['batch_size'],
@@ -540,7 +480,6 @@ def main():
         num_workers=config['hardware']['num_workers'],
         pin_memory=config['hardware']['pin_memory']
     )
-
     val_loader = DataLoader(
         val_dataset,
         batch_size=config['training']['batch_size'],
@@ -549,25 +488,20 @@ def main():
         pin_memory=config['hardware']['pin_memory']
     )
 
-    # Create model
-    model = create_model(config, tokenizer.vocab_size)
+    # Model
+    model = create_model(config, vocab_size)
     model.to(device)
 
-    # Count parameters
     total_params = sum(p.numel() for p in model.parameters())
-    trainable_params = sum(p.numel()
-                           for p in model.parameters() if p.requires_grad)
-    logging.info(
-        f"Model parameters: {total_params:,} total, {trainable_params:,} trainable")
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    logging.info(f"Model parameters: {total_params:,} total, {trainable_params:,} trainable")
 
-    # Setup optimizer
+    # Optimizer / Scheduler
     optimizer = optim.AdamW(
         model.parameters(),
         lr=config['training']['learning_rate'],
         weight_decay=config['training']['weight_decay']
     )
-
-    # Setup scheduler
     scheduler = None
     if config['training']['scheduler']['type'] == 'warmup':
         scheduler = WarmupLRScheduler(
@@ -582,59 +516,47 @@ def main():
             gamma=config['training']['scheduler']['step_factor']
         )
 
-    # Setup loss function
-    criterion = nn.CrossEntropyLoss(
-        ignore_index=tokenizer.word_to_id[config['data']['special_tokens']['pad_token']])
+    # Loss: no padding needed since sequences are fixed-length
+    criterion = nn.CrossEntropyLoss()
 
     # Training loop
     best_val_loss = float('inf')
     start_time = time.time()
-    train_loss = 0.0  # Initialize train_loss
+    train_loss = 0.0
 
     for epoch in range(config['training']['epochs']):
-        epoch_start_time = time.time()
-
-        # Train
-        train_loss = train_epoch(
-            model, train_loader, optimizer, scheduler, criterion, device, config)
+        epoch_start = time.time()
+        train_loss = train_epoch(model, train_loader, optimizer, scheduler, criterion, device, config)
 
         # Evaluate
         if epoch % config['evaluation']['eval_frequency'] == 0:
             val_loss = evaluate(model, val_loader, criterion, device)
-            perplexity = math.exp(val_loss)
-
+            perplexity = math.exp(min(20, val_loss))  # clamp to avoid inf during early training
             logging.info(f'Epoch {epoch}/{config["training"]["epochs"]}:')
             logging.info(f'  Train Loss: {train_loss:.4f}')
-            logging.info(f'  Val Loss: {val_loss:.4f}')
-            logging.info(f'  Perplexity: {perplexity:.2f}')
+            logging.info(f'  Val   Loss: {val_loss:.4f}')
+            logging.info(f'  PPL       : {perplexity:.2f}')
 
-            # Save best model
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
-                save_checkpoint(model, optimizer, scheduler,
-                                epoch, val_loss, config, tokenizer)
+                save_checkpoint(model, optimizer, scheduler, epoch, val_loss, config, tokenizer_path)
 
-            # Generate sample
+            # Sample
             sample = generate_sample(model, tokenizer, device, config, "The")
             logging.info(f'Sample: {sample[:200]}...')
 
-        # Save periodic checkpoints
+        # Periodic save
         if epoch % config['training']['save_frequency'] == 0:
-            save_checkpoint(model, optimizer, scheduler, epoch,
-                            train_loss, config, tokenizer)
+            save_checkpoint(model, optimizer, scheduler, epoch, train_loss, config, tokenizer_path)
 
-        epoch_time = time.time() - epoch_start_time
-        logging.info(f'Epoch {epoch} completed in {epoch_time:.2f}s')
+        logging.info(f'Epoch {epoch} completed in {time.time() - epoch_start:.2f}s')
 
     total_time = time.time() - start_time
-    logging.info(f'Training completed in {total_time:.2f}s')
+    logging.info(f"Training completed in {total_time:.2f}s")
 
     # Final save
-    save_checkpoint(model, optimizer, scheduler,
-                    config['training']['epochs'], train_loss, config, tokenizer)
-
+    save_checkpoint(model, optimizer, scheduler, config['training']['epochs'], train_loss, config, tokenizer_path)
     logging.info("Training finished!")
-
 
 if __name__ == "__main__":
     main()
