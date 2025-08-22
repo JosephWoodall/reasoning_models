@@ -283,34 +283,49 @@ class RAGInference:
         top_p: float = 0.9
     ) -> Tuple[str, List[Document]]:
         """Generate response using RAG."""
+        # Get query embedding and retrieve relevant documents
         query_embedding = self._encode_text(query).cpu().numpy()
-        
         retrieved_docs = self.doc_store.search(query_embedding)
-        
         context = self._prepare_context(retrieved_docs)
         
+        # Prepare the full prompt
         full_prompt = f"Context:\n{context}\n\nQuery: {query}\n\nAnswer:"
-        
         input_ids = self.tokenizer.encode(full_prompt).ids
         input_ids = torch.tensor([input_ids]).to(self.device)
         
+        # Generate response token by token
         generated = []
         with torch.no_grad():
+            # Initial forward pass to get the hidden states
+            encoder_output = None
+            decoder_input = input_ids
+            
             for _ in range(max_length):
-                outputs = self.model(input_ids)
-                next_token_logits = outputs[:, -1, :] / temperature
+                # Forward pass through the model
+                if encoder_output is None:
+                    outputs = self.model(decoder_input)
+                else:
+                    outputs = self.model(decoder_input, encoder_output)
+                
+                # Get logits for the next token
+                logits = outputs[:, -1, :] / temperature
+                
+                # Apply top-k and top-p filtering
                 filtered_logits = top_k_top_p_filtering(
-                    next_token_logits,
+                    logits,
                     top_k=top_k,
                     top_p=top_p
                 )
-                next_token = torch.multinomial(
-                    F.softmax(filtered_logits, dim=-1),
-                    num_samples=1
-                )
-                generated.append(next_token.item())
-                input_ids = torch.cat([input_ids, next_token.unsqueeze(0)], dim=1)
                 
+                # Sample the next token
+                probs = F.softmax(filtered_logits, dim=-1)
+                next_token = torch.multinomial(probs, num_samples=1)
+                
+                # Add to generated sequence
+                generated.append(next_token.item())
+                decoder_input = torch.cat([decoder_input, next_token], dim=1)
+                
+                # Check for end of sequence
                 if next_token.item() == self.tokenizer.token_to_id("<END>"):
                     break
         
