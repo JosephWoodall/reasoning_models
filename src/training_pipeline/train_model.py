@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Transformer Model Training Script (BPE tokenizer edition)
 
@@ -25,22 +24,18 @@ import random
 import numpy
 import re
 
-# Add src directory to path to import model
 src_dir = os.path.join(os.path.dirname(__file__), '..')
 sys.path.insert(0, src_dir)
 
-# Now we can import the model
 from model.model import Transformer
 
-# ------------- Utils -------------
 def set_seed(seed: int = 42):
     random.seed(seed)
     numpy.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
-# ------------- BPE Tokenizer -------------
-# We keep this self-contained in this file so you can drop it in and run
+
 from tokenizers import Tokenizer, models, trainers, pre_tokenizers
 from tokenizers.processors import BertProcessing
 
@@ -55,8 +50,7 @@ def train_bpe_tokenizer(
     Train a Byte-Pair Encoding tokenizer from raw texts and save it to JSON.
     """
     tokenizer = Tokenizer(models.BPE(unk_token="<UNK>"))
-    # Use ByteLevel pre-tokenizer for better subword tokenization
-    tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=True)
+    tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=False)
 
     trainer = trainers.BpeTrainer(
         vocab_size=vocab_size,
@@ -65,11 +59,8 @@ def train_bpe_tokenizer(
         continuing_subword_prefix="##"
     )
 
-    # Train directly from the iterator of texts (no temp files needed)
     tokenizer.train_from_iterator(texts, trainer=trainer)
 
-    # Post-processor: wrap sequences with <START> ... <END>
-    # (Not strictly required for LM, but useful for generation)
     start_id = tokenizer.token_to_id("<START>")
     end_id = tokenizer.token_to_id("<END>")
     tokenizer.post_processor = BertProcessing(
@@ -80,7 +71,6 @@ def train_bpe_tokenizer(
     tokenizer.save(save_path)
     return tokenizer
 
-# ------------- Dataset -------------
 class TextDataset(Dataset):
     """
     Dataset that:
@@ -96,13 +86,8 @@ class TextDataset(Dataset):
 
         print("Encoding texts and creating sequences...")
         for text in texts:
-            # encode returns an Encoding; .ids are token ids
             token_ids = tokenizer.encode(text).ids
 
-            # Optional: ensure we always see start/end wrappers at text level
-            # (The post-processor does this only when calling tokenizer.encode,
-            #  which we already do above.)
-            # Now slice into overlapping fixed-length chunks
             step = max(1, sequence_length // 2)
             for i in range(0, len(token_ids) - sequence_length, step):
                 seq = token_ids[i:i + sequence_length]
@@ -120,7 +105,6 @@ class TextDataset(Dataset):
         target_ids = torch.tensor(seq[1:], dtype=torch.long)
         return input_ids, target_ids
 
-# ------------- Scheduler -------------
 class WarmupLRScheduler:
     """Learning rate scheduler with warmup (Transformer-style)."""
     def __init__(self, optimizer, d_model: int, warmup_steps: int):
@@ -138,7 +122,6 @@ class WarmupLRScheduler:
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = lr
 
-# ------------- Config / IO -------------
 def load_config(config_path: Optional[str] = None) -> Dict:
     """Load YAML config; falls back to default if not found."""
     default_config = {
@@ -327,12 +310,33 @@ def save_checkpoint(model: nn.Module, optimizer, scheduler, epoch: int,
     torch.save(checkpoint, os.path.join(checkpoint_dir, f'{model_name}_epoch_{epoch}.pt'))
     logging.info(f"Saved checkpoint at epoch {epoch}")
 
-# ------------- Generation -------------
 def sample_next_token(logits: torch.Tensor, temperature: float) -> int:
     logits = logits / max(temperature, 1e-6)
     probs = torch.softmax(logits, dim=-1)
     next_token = torch.multinomial(probs, 1).item()
     return int(next_token)
+
+def top_k_top_p_filtering(logits, top_k=0, top_p=0.0, filter_value=-float('Inf')):
+    """Filter a distribution of logits using top-k and/or nucleus (top-p) filtering."""
+    top_k = min(top_k, logits.size(-1))  # Safety check
+    if top_k > 0:
+        # Remove all tokens with a probability less than the last token of the top-k
+        indices_to_remove = logits < torch.topk(logits, top_k)[0][..., -1, None]
+        logits[indices_to_remove] = filter_value
+
+    if top_p > 0.0:
+        sorted_logits, sorted_indices = torch.sort(logits, descending=True)
+        cumulative_probs = torch.cumsum(torch.softmax(sorted_logits, dim=-1), dim=-1)
+
+        # Remove tokens with cumulative probability above the threshold
+        sorted_indices_to_remove = cumulative_probs > top_p
+        # Shift the indices to the right to keep also the first token above the threshold
+        sorted_indices_to_remove[..., 1:] = sorted_indices_to_remove[..., :-1].clone()
+        sorted_indices_to_remove[..., 0] = 0
+
+        indices_to_remove = sorted_indices[sorted_indices_to_remove]
+        logits[indices_to_remove] = filter_value
+    return logits
 
 def generate_sample(model: nn.Module, tokenizer: Tokenizer,
                     device: torch.device, config: Dict, prompt: str = "") -> str:
@@ -340,9 +344,14 @@ def generate_sample(model: nn.Module, tokenizer: Tokenizer,
     gen = config['generation']
     max_len = gen['max_length']
     temperature = gen['temperature']
+    top_k = gen['top_k']
+    top_p = gen['top_p']
+    repetition_penalty = 1.2  # Penalty for repeating tokens
 
-    # Encode prompt (post-processor will add <START>/<END>)
     if prompt:
+        # Add a space before the prompt if it doesn't start with one
+        if not prompt.startswith(" "):
+            prompt = " " + prompt
         token_ids = tokenizer.encode(prompt).ids
     else:
         token_ids = [tokenizer.token_to_id("<START>")]
@@ -352,20 +361,45 @@ def generate_sample(model: nn.Module, tokenizer: Tokenizer,
             inp = torch.tensor([token_ids], dtype=torch.long, device=device)
             output = model(inp)
             logits = output[0, -1, :]
-            next_token = sample_next_token(logits, temperature)
-            token_ids.append(next_token)
 
-            # Stop if we see <END>
+            # Apply repetition penalty
+            if len(token_ids) > 0:
+                for token_id in set(token_ids[-20:]):  # Look at last 20 tokens
+                    logits[token_id] /= repetition_penalty
+
+            # Apply temperature
+            logits = logits / temperature
+            
+            # Apply top-k and top-p filtering
+            logits = top_k_top_p_filtering(logits, top_k=top_k, top_p=top_p)
+            
+            # Sample from the filtered distribution
+            probs = torch.softmax(logits, dim=-1)
+            next_token = torch.multinomial(probs, num_samples=1).item()
+            
             if next_token == tokenizer.token_to_id("<END>"):
                 break
+                
+            token_ids.append(next_token)
 
-    # Remove the leading <START> if present before decoding
+            # Early stopping if we detect too much repetition
+            if len(token_ids) > 10:
+                last_tokens = token_ids[-10:]
+                if len(set(last_tokens)) <= 2:  # If only 1-2 unique tokens in last 10 tokens
+                    break
+
     start_id = tokenizer.token_to_id("<START>")
     if len(token_ids) > 0 and token_ids[0] == start_id:
         token_ids = token_ids[1:]
-    return tokenizer.decode(token_ids)
+    
+    # Decode and clean up the text
+    text = tokenizer.decode(token_ids, skip_special_tokens=True)
+    # Remove any remaining Ġ characters
+    text = text.replace('Ġ', ' ').strip()
+    # Clean up multiple spaces
+    text = ' '.join(text.split())
+    return text
 
-# ------------- Train/Eval -------------
 def train_epoch(model: nn.Module, dataloader: DataLoader, optimizer,
                 scheduler, criterion, device: torch.device, config: Dict) -> float:
     model.train()
@@ -406,9 +440,7 @@ def evaluate(model: nn.Module, dataloader: DataLoader, criterion,
             total_loss += loss.item()
     return total_loss / max(1, len(dataloader))
 
-# ------------- Main -------------
 def main():
-    # Use your existing external config path
     config_path = "/home/joseph_woodall/workspace/reasoning_models/src/training_pipeline/model_config.yml"
     config = load_config(config_path)
 
@@ -419,14 +451,12 @@ def main():
     logging.info("Starting transformer training (BPE tokenizer)...")
     logging.info(f"Configuration: {json.dumps(config, indent=2)}")
 
-    # Device
     if config['hardware']['device'] == 'auto':
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     else:
         device = torch.device(config['hardware']['device'])
     logging.info(f"Using device: {device}")
 
-    # Data path
     cache_dir = os.path.join(os.path.dirname(__file__), '..', '..', config['data']['cache_dir'])
     batch_size_for_loading = config['data'].get('load_batch_size', 1000)
 
@@ -439,7 +469,6 @@ def main():
     if not texts:
         raise ValueError("No text data found!")
 
-    # Split data
     split_idx = int(len(texts) * config['data']['train_split'])
     split_idx = max(1, split_idx)  # ensure at least one training text
     train_texts = texts[:split_idx]
@@ -447,7 +476,6 @@ def main():
 
     logging.info(f"Train texts: {len(train_texts)}, Validation texts: {len(val_texts)}")
 
-    # Tokenizer: train or load
     project_root = os.path.join(os.path.dirname(__file__), '..', '..')
     tokenizer_path = os.path.join(project_root, config['output'].get('tokenizer_path', 'output/checkpoints/tokenizer.json'))
     os.makedirs(os.path.dirname(tokenizer_path), exist_ok=True)
@@ -465,16 +493,13 @@ def main():
         tokenizer = Tokenizer.from_file(tokenizer_path)
 
     vocab_size = tokenizer.get_vocab_size()
-    # Mirror to tgt vocab (shared LM head)
     config['model']['src_vocab_size'] = vocab_size
     config['model']['tgt_vocab_size'] = vocab_size
 
-    # Datasets
     seq_len = config['data']['sequence_length']
     train_dataset = TextDataset(train_texts, tokenizer, seq_len)
     val_dataset = TextDataset(val_texts, tokenizer, seq_len)
 
-    # DataLoaders
     train_loader = DataLoader(
         train_dataset,
         batch_size=config['training']['batch_size'],
@@ -490,7 +515,6 @@ def main():
         pin_memory=config['hardware']['pin_memory']
     )
 
-    # Model
     model = create_model(config, vocab_size)
     model.to(device)
 
@@ -498,7 +522,6 @@ def main():
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     logging.info(f"Model parameters: {total_params:,} total, {trainable_params:,} trainable")
 
-    # Optimizer / Scheduler
     optimizer = optim.AdamW(
         model.parameters(),
         lr=config['training']['learning_rate'],
@@ -518,10 +541,8 @@ def main():
             gamma=config['training']['scheduler']['step_factor']
         )
 
-    # Loss: no padding needed since sequences are fixed-length
     criterion = nn.CrossEntropyLoss()
 
-    # Training loop
     best_val_loss = float('inf')
     start_time = time.time()
     train_loss = 0.0
@@ -530,7 +551,6 @@ def main():
         epoch_start = time.time()
         train_loss = train_epoch(model, train_loader, optimizer, scheduler, criterion, device, config)
 
-        # Evaluate
         if epoch % config['evaluation']['eval_frequency'] == 0:
             val_loss = evaluate(model, val_loader, criterion, device)
             perplexity = math.exp(min(20, val_loss))  # clamp to avoid inf during early training
@@ -543,11 +563,10 @@ def main():
                 best_val_loss = val_loss
                 save_checkpoint(model, optimizer, scheduler, epoch, val_loss, config, tokenizer_path)
 
-            # Sample
-            sample = generate_sample(model, tokenizer, device, config, "The")
-            logging.info(f'Sample: {sample[:200]}...')
+            sample = generate_sample(model, tokenizer, device, config, config["generation"]["sample_prompt"])
+            display_length = config["generation"]["sample_display_length"]
+            logging.info(f'Sample: {sample[:display_length]}...')
 
-        # Periodic save
         if epoch % config['training']['save_frequency'] == 0:
             save_checkpoint(model, optimizer, scheduler, epoch, train_loss, config, tokenizer_path)
 
@@ -556,7 +575,6 @@ def main():
     total_time = time.time() - start_time
     logging.info(f"Training completed in {total_time:.2f}s")
 
-    # Final save
     save_checkpoint(model, optimizer, scheduler, config['training']['epochs'], train_loss, config, tokenizer_path)
     logging.info("Training finished!")
 

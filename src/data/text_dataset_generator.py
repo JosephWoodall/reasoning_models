@@ -142,8 +142,8 @@ class CrossRefReasoningGenerator:
         return dataset
 
 if __name__ == "__main__":
-    start_book_id = 500
-    end_book_id = 600
+    start_book_id = 100
+    end_book_id = 800
     print("="*50)
     print(f"Collecting books from {start_book_id} to {end_book_id}")
     print("="*50)
