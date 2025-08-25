@@ -9,3 +9,4 @@ output/checkpoints/
 
 # Text Cache Used for Training
 src/data/text_cache
+src/data/cross_ref_dataset.json
