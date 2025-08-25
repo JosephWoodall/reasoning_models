@@ -130,3 +130,21 @@ Add external tools (math, search) to inference.
 Implement retrieval-augmented training (RAG) for factual grounding.
 
 Explore reinforcement fine-tuning for reasoning quality.
+
+
+# MULTI-AGENTIC MODULE TODO
+1. Centralized Multi-Agent System To-Do
+- Define the Orchestrator: Create a central agent that will receive user queries, break them down into sub-tasks, and manage the workflow. This agent is responsible for calling other specialized agents.  
+- Design Agent Roles: Identify the specific tasks required for your use case and create an agent for each role (e.g., Researcher Agent, Writer Agent, Fact-Checker Agent). Each agent will be a separate instance of your LLM with a specific system prompt.  
+- Integrate Tools: Wrap your RAG system and other external services (like a search tool or a database) into callable functions. These functions will be the "tools" that your agents can use.  
+- Implement Tool Calling Logic: Enable the orchestrator and specialized agents to use the tools. This involves setting up function calling or a similar mechanism so the agents can trigger external actions.  
+- Create the Main Control Loop: Build a loop where the orchestrator receives the user query, delegates tasks, collects results, and synthesizes the final response. This loop ensures the entire process runs from start to finish.  
+- Handle Errors and Communication: Implement a way for agents to communicate back to the orchestrator about success or failure, and for the orchestrator to handle any errors that occur.  
+
+2. Decentralized Multi-Agent System To-Do
+- Define Agent Roles and Communication Protocols: Create specialized agents just like in the centralized system, but with clear protocols for how they will communicate with each other directly. There is no single orchestrator.  
+- Enable Peer-to-Peer Communication: Implement a message passing system or a shared state that allows agents to send information to and receive information from each other. This is a crucial difference from the centralized model.  
+- Implement a Shared Memory/State: Use a shared data store to manage the state of the task and the conversation. All agents will have access to this memory to track progress and share results.  
+- Design Task Hand-off Logic: Instead of a central orchestrator, each agent will need to have logic to determine which other agent should handle the next step. This could be based on the type of information received or the current state of the task.  
+- Implement a Final Agent: Design a final agent that is responsible for gathering the output from all the other agents and formatting it into a final, coherent response for the user.  
+- Consider a Hierarchical Structure: For more complex tasks, you might want to create a hierarchical system where a higher-level "manager" agent oversees a team of subordinate agents, but still without a single central orchestrator for the entire system.  
