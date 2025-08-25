@@ -12,11 +12,7 @@ from pathlib import Path
 import torch.nn.functional as F
 import torch.nn as nn
 import torch
-from src.model.model import Transformer  # Import the main Transformer class
-
-
-# Add the src directory to the Python path
-
+from src.model.model import Transformer  
 
 class TextTokenizer:
     """Simple word-level tokenizer for text data."""
@@ -29,18 +25,15 @@ class TextTokenizer:
 
     def build_vocab(self, texts: List[str], max_vocab_size: int = 10000):
         """Build vocabulary from text data."""
-        # Add special tokens first
         for token in self.special_tokens.values():
             self.word_to_id[token] = len(self.word_to_id)
             self.id_to_word[len(self.id_to_word)] = token
 
-        # Count word frequencies
         word_counts = Counter()
         for text in texts:
             words = re.findall(r'\b\w+\b|[^\w\s]', text.lower())
             word_counts.update(words)
 
-        # Add most frequent words to vocabulary
         most_common = word_counts.most_common(
             max_vocab_size - len(self.special_tokens))
         for word, _ in most_common:
@@ -65,7 +58,7 @@ class TextTokenizer:
 
 def load_model(checkpoint_path, device='cpu'):
     """
-    Load the trained transformer model from a checkpoint.
+    Load the trained transformer model and BPE tokenizer.
 
     Args:
         checkpoint_path (str): Path to the model checkpoint
@@ -75,126 +68,123 @@ def load_model(checkpoint_path, device='cpu'):
         model: Loaded model instance
         tokenizer: Tokenizer instance
     """
-    # Load the checkpoint
     print(f"Loading checkpoint from {checkpoint_path}...")
     try:
-        # Try loading with pickle_module specification
         checkpoint = torch.load(checkpoint_path, map_location=device, pickle_module=torch.serialization.pickle)
     except:
-        # Fallback to default loading
         checkpoint = torch.load(checkpoint_path, map_location='cpu')
     print("Checkpoint loaded successfully")
 
-    # Initialize tokenizer with special tokens (using the same as in training)
-    special_tokens = {
-        'pad_token': '<PAD>',
-        'unk_token': '<UNK>',
-        'bos_token': '<START>',
-        'eos_token': '<END>'
+    # Load the BPE tokenizer from the JSON file
+    tokenizer_path = os.path.join(os.path.dirname(checkpoint_path), 'tokenizer.json')
+    if not os.path.exists(tokenizer_path):
+        raise FileNotFoundError(f"Tokenizer file not found at {tokenizer_path}")
+    
+    from tokenizers import Tokenizer
+    tokenizer = Tokenizer.from_file(tokenizer_path)
+    print(f"Loaded BPE tokenizer from {tokenizer_path}")
+    
+    class TokenizerWrapper:
+        def __init__(self, tokenizer):
+            self.tokenizer = tokenizer
+            self.vocab_size = tokenizer.get_vocab_size()
+            
+        def encode(self, text: str) -> List[int]:
+            return self.tokenizer.encode(text).ids
+            
+        def decode(self, token_ids: List[int]) -> str:
+            return self.tokenizer.decode(token_ids)
+    
+    wrapped_tokenizer = TokenizerWrapper(tokenizer)
+
+    state_dict = checkpoint.get('model_state_dict', checkpoint)
+    
+    vocab_size, d_model = state_dict['src_embedding.weight'].shape
+    d_ff = state_dict['encoder_layers.0.feed_forward.linear1.weight'].size(0)
+    num_layers = sum(1 for key in state_dict if key.startswith('encoder_layers.') 
+                    and key.endswith('.feed_forward.linear1.weight'))
+    
+    print(f"\nModel architecture:")
+    print(f"Vocabulary size: {vocab_size}")
+    print(f"Model dimension: {d_model}")
+    print(f"Feed-forward dimension: {d_ff}")
+    print(f"Number of layers: {num_layers}")
+    
+    model_args = {
+        'src_vocab_size': vocab_size,
+        'tgt_vocab_size': vocab_size,
+        'd_model': d_model,
+        'num_heads': 8,  # This could be extracted if needed
+        'num_layers': num_layers,
+        'd_ff': d_ff,
+        'max_len': 5000,
+        'dropout': 0.1
     }
-    tokenizer = TextTokenizer(special_tokens)
-
-    # If checkpoint has word_to_id mapping, restore it
-    if 'word_to_id' in checkpoint and 'id_to_word' in checkpoint:
-        print("Found vocabulary in checkpoint")
-        tokenizer.word_to_id = checkpoint['word_to_id']
-        tokenizer.id_to_word = {
-            int(k): v for k, v in checkpoint['id_to_word'].items()}
-        tokenizer.vocab_size = len(tokenizer.word_to_id)
-    else:
-        raise ValueError("Checkpoint does not contain vocabulary information")
-
-    # Get model configuration
-    config = {}
-    if 'config' in checkpoint and isinstance(checkpoint['config'], dict):
-        if 'model' in checkpoint['config']:
-            config = checkpoint['config']['model']
-        else:
-            config = checkpoint['config']
-
-    # Use default values if config values are missing
-    model_params = {
-        'd_model': config.get('d_model', 128),
-        'num_heads': config.get('num_heads', 4),
-        'num_layers': config.get('num_layers', 2),
-        'd_ff': config.get('d_ff', 512),
-        'dropout': config.get('dropout', 0.1)
-    }
-
-    print(f"Creating model with params: {model_params}")
-
-    # Create a new model instance with the same parameters used during training
-    model = Transformer(
-        src_vocab_size=tokenizer.vocab_size,
-        tgt_vocab_size=tokenizer.vocab_size,
-        d_model=model_params['d_model'],
-        num_heads=model_params['num_heads'],
-        num_layers=model_params['num_layers'],
-        d_ff=model_params['d_ff'],
-        dropout=model_params['dropout']
-    )
-
-    print("Loading model state...")
-    # Load the state dict
-    model.load_state_dict(checkpoint['model_state_dict'])
-
-    # Set the model to evaluation mode
-    model.eval()
+    
+    model = Transformer(**model_args)
+    try:
+        model.load_state_dict(state_dict)
+        print("\nModel state loaded successfully")
+    except Exception as e:
+        print(f"\nWarning: Error loading state dict: {str(e)}")
+        print("Attempting to load with strict=False...")
+        model.load_state_dict(state_dict, strict=False)
+    
     model.to(device)
-    print(f"Model loaded successfully and moved to {device}")
+    model.eval()
+    
+    return model, wrapped_tokenizer
+            
 
-    return model, tokenizer
 
-
-def generate_text(model, tokenizer, prompt, max_length=100, temperature=0.7):
+def generate_text(model, tokenizer, prompt, max_length=100, temperature=0.7, top_p=0.9):
     """
-    Generate text using the trained model.
+    Generate text using the trained model with nucleus sampling.
 
     Args:
         model: The loaded transformer model
-        tokenizer: The tokenizer instance
+        tokenizer: The tokenizer instance (TokenizerWrapper)
         prompt (str): The starting text prompt
         max_length (int): Maximum length of generated sequence
-        temperature (float): Controls randomness in generation (lower = more deterministic)
+        temperature (float): Controls randomness (lower = more deterministic)
+        top_p (float): Nucleus sampling parameter (0.9 means top 90% of probability mass)
 
     Returns:
         str: Generated text
     """
-    model.eval()  # Ensure model is in evaluation mode
+    model.eval()
     device = next(model.parameters()).device
 
-    with torch.no_grad():  # No need to track gradients during inference
-        # Convert prompt to tensor
-        input_tokens = tokenizer.encode(prompt)
-        input_ids = torch.tensor([input_tokens]).to(
-            device)  # Add batch dimension
-
+    with torch.no_grad():
+        input_ids = torch.tensor(tokenizer.encode(prompt)).unsqueeze(0).to(device)
+        generated_ids = []
+        
         for _ in range(max_length):
-            # Create target mask for the decoder
-            tgt_mask = model.create_look_ahead_mask(
-                input_ids.size(1)).to(device)
-
-            # Get model predictions (we use the same sequence for both encoder and decoder)
-            outputs = model(input_ids, input_ids, tgt_mask)
-            next_token_logits = outputs[:, -1, :] / temperature
-
-            # Sample from the output distribution
-            next_token = torch.multinomial(
-                F.softmax(next_token_logits, dim=-1), num_samples=1)
-
-            # Append to input sequence
-            input_ids = torch.cat([input_ids, next_token], dim=1)
-
-            # Check for end of sequence token
-            if next_token.item() == tokenizer.word_to_id[tokenizer.special_tokens['eos_token']]:
+            outputs = model(input_ids)  
+            next_token_logits = outputs[0, -1, :] / temperature
+            probs = torch.softmax(next_token_logits, dim=-1)
+            
+            if top_p < 1.0:
+                sorted_probs, sorted_indices = torch.sort(probs, descending=True)
+                cumsum_probs = torch.cumsum(sorted_probs, dim=-1)
+                sorted_indices_to_remove = cumsum_probs > top_p
+                sorted_indices_to_remove[1:] = sorted_indices_to_remove[:-1].clone()
+                sorted_indices_to_remove[0] = False
+                probs[sorted_indices[sorted_indices_to_remove]] = 0
+                probs = probs / probs.sum()
+            
+            next_token = torch.multinomial(probs, num_samples=1)
+            generated_ids.append(next_token.item())
+            
+            input_ids = torch.cat([input_ids, next_token.unsqueeze(0)], dim=1)
+            
+            if next_token.item() == tokenizer.tokenizer.token_to_id("</s>"):
                 break
-
-            # Safety check for length
-            if input_ids.size(1) >= max_length:
+                
+            if len(generated_ids) >= max_length:
                 break
-
-        # Convert back to text
-        generated_text = tokenizer.decode(input_ids[0].tolist())
+        
+        return tokenizer.decode(generated_ids)
 
     return generated_text
 
@@ -205,7 +195,6 @@ if __name__ == "__main__":
     device = 'cuda'
 
     try:
-        # Load the model and tokenizer
         print("="*50)
         print("Loading model from checkpoint...")
         model, tokenizer = load_model(checkpoint_path, device)
@@ -219,7 +208,6 @@ if __name__ == "__main__":
         prompt = input()
         print(f"\nGenerating text from prompt: '{prompt}'")
         print("="*50)
-        # Generate text
         generated_text = generate_text(
             model, tokenizer, prompt, max_length=100, temperature=0.7)
         print("\n")
@@ -228,6 +216,5 @@ if __name__ == "__main__":
         print("="*50)
     except Exception as e:
         print(f"Error: {str(e)}")
-        # Print full traceback for debugging
         import traceback
         traceback.print_exc()
